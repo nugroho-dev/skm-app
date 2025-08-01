@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Spatie\Permission\Models\Role;
 use App\Models\Institution;
 
 class CreateNewUser implements CreatesNewUsers
@@ -33,11 +34,13 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
         $institution = Institution::where('slug',  $input['institution_slug'])->firstOrFail();
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
             'institution_id' => $institution->id,
         ]);
+        $user->assignRole('admin_instansi');
+        return $user;
     }
 }

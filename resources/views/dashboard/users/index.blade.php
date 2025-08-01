@@ -50,7 +50,7 @@
                     <div class="text-secondary">{{ $user->email }}</div>
                     <div class="text-secondary">{{ $user->institution->name }}</div>
                     <div class="mt-3">
-                      {!! $user->approved ? '<span class="badge bg-success-lt">Disetujui</span>' : '<span class="badge bg-warning-lt">Menunggu Persetujuan</span>' !!}
+                      {!! $user->is_approved==true ? '<span class="badge bg-success-lt">Disetujui</span>' : '<span class="badge bg-warning-lt">Menunggu Persetujuan</span>' !!}
                     </div>
                   </div>
                   <div class="d-flex">

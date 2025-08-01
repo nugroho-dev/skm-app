@@ -17,7 +17,7 @@ class EnsureUserIsApproved
     {
         $user = auth()->user();
 
-        if ($user && $user->hasRole('admin_instansi') && !$user->approved) {
+        if ($user && $user->hasRole('admin_instansi') && !$user->is_approved) {
             auth()->logout();
 
             return redirect()->route('login')->withErrors([

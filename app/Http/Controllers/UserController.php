@@ -22,7 +22,7 @@ class UserController extends Controller
         abort(403, 'Unauthorized');
     }
 
-    $user->update(['is_approved' => true]);
+    User::where('id', $user->id)->update(['is_approved' => true]);
     return back()->with('success', 'User telah disetujui.');
     }
 }

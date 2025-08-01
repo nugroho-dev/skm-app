@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Providers\FortifyServiceProvider;
+use App\Http\Responses\CustomLoginResponse;
+use Laravel\Fortify\Contracts\LoginResponse;
 use App\Services\MenuService;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,6 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(FortifyServiceProvider::class);
+        $this->app->singleton(LoginResponse::class, CustomLoginResponse::class);
     }
 
     /**

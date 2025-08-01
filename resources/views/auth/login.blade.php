@@ -5,7 +5,10 @@
     <div class="page page-center">
       <div class="container container-tight py-4">
         <div class="text-center mb-4">
-            <h2 class="h2 text-center mb-4">SiSUKMA</h2>
+          <a href="." aria-label="Tabler" class="navbar-brand navbar-brand-autodark">
+            <img src="/img/sisukma-high-resolution-logo-transparent.png" width="100" height="100%" alt="Tabler logo" nonce="">
+          </a>
+            
         </div>
         <div class="card card-md">
           <div class="card-body">

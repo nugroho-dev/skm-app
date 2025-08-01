@@ -25,9 +25,9 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->middleware(['guest', 'throttle:register', VerifyRecaptcha::class])->name('register');
 Route::middleware(['auth', 'verified','approved', 'role:admin_instansi'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/instansi', [DashboardController::class, 'index'])->name('dashboard');
 });
-Route::middleware(['auth', 'verified', 'approved', 'role:super_admin',])->group(function () {
+Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::put('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
