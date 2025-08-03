@@ -25,7 +25,8 @@ class DatabaseSeeder extends Seeder
             //UnsurSeeder::class,
             //AnswerSeeder::class,
             //ServiceSeeder::class,
-            SuperAdminSeeder::class,
+            //SuperAdminSeeder::class,
+            RoleSeeder::class,
         ]);
         //User::factory()->create([
             //'name' => 'Test User',

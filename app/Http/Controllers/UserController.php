@@ -8,9 +8,19 @@ use App\Models\User;
 class UserController extends Controller
 {
     
-    public function index()
+    public function index(Request $request)
     {
-    $users = User::role('admin_instansi')->get();
+    $query = User::role('admin_instansi');
+    // Fitur pencarian
+    if ($request->has('search') && $request->search !== null) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
+        });
+    }
+
+    $users = $query->orderBy('created_at', 'desc')->paginate(20);
     $title = 'Manajemen User';
     return view('dashboard.users.index', compact('users', 'title'));
     }
