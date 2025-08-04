@@ -24,7 +24,10 @@
               <!-- Page title actions -->
               <div class="col-auto ms-auto d-print-none">
                 <div class="d-flex">
-                  <a href="#" class="btn btn-primary btn-3">Tambah Data</a>
+                  <a href="{{ route('institutions.create') }}" class="btn btn-primary btn-3">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M12 11l0 6" /><path d="M9 14l6 0" /></svg>
+                    Tambah Data
+                  </a>
                 </div>
               </div>
             </div>
@@ -56,13 +59,11 @@
                     <table class="table table-selectable card-table table-vcenter text-nowrap datatable">
                       <thead>
                         <tr>
-                          <th class="w-1"><input class="form-check-input m-0 align-middle" type="checkbox" aria-label="Select all invoices"></th>
+                          
                           <th class="w-1">
                             No.
-                            <!-- Download SVG icon from http://tabler.io/icons/icon/chevron-up -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-sm icon-thick icon-2">
-                              <path d="M6 15l6 -6l6 6"></path>
-                            </svg>
+                            
+                            
                           </th>
                           <th>Instansi</th>
                           <th>Instansi Induk</th>
@@ -76,7 +77,7 @@
                       <tbody>
                         @forelse ($institutions as $index => $institution)
                         <tr>
-                          <td><input class="form-check-input m-0 align-middle table-selectable-check" type="checkbox" aria-label="Select invoice"></td>
+                          
                           <td><span class="text-secondary">{{ $institutions->firstItem() + $index }}</span></td>
                           <td><a href="invoice.html" class="text-reset" tabindex="-1">{{ $institution->name }}</a></td>
                           <td>
@@ -95,7 +96,7 @@
                             <span class="dropdown">
                               <button class="btn dropdown-toggle align-text-top" data-bs-boundary="viewport" data-bs-toggle="dropdown">Actions</button>
                               <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#"> Edit </a>
+                                <a class="dropdown-item" href="{{ route('institutions.edit', $institution->slug ) }}"> Edit </a>
                                 <a class="dropdown-item" href="#"> Hapus </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#"> Layanan </a>
@@ -117,5 +118,5 @@
                 </div>
               </div>
             </div>
-</div>
+          </div>
               @endsection

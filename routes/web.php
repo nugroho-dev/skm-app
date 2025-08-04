@@ -34,4 +34,9 @@ Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(f
     Route::put('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
     Route::put('/users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
     Route::get('/instansi', [InstitutionController::class, 'index'])->name('institutions.index');
+    Route::get('/instansi/create', [InstitutionController::class, 'create'])->name('institutions.create');
+    Route::post('/instansi', [InstitutionController::class, 'store'])->name('institutions.store');
+    Route::get('/instansi/{institution}/edit', [InstitutionController::class, 'edit'])->name('institutions.edit');
+    Route::put('/instansi/{institution}', [InstitutionController::class, 'update'])->name('institutions.update');
+    Route::delete('/instansi/{institution}', [InstitutionController::class, 'destroy'])->name('institutions.destroy');
 });
