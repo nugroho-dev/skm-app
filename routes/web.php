@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\InstitutionController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
@@ -31,4 +32,6 @@ Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(f
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::put('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
+    Route::put('/users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
+    Route::get('/instansi', [InstitutionController::class, 'index'])->name('institutions.index');
 });

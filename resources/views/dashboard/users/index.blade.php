@@ -11,13 +11,18 @@
                 <h2 class="page-title">Users</h2>
                 
               </div>
-              <p>
-            @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-            @endif
-        </p>
+            <p>
+              @if(session('success'))
+              <div class="alert alert-success">
+                  {{ session('success') }}
+              </div>
+              @endif
+              @if($users->count()==0)
+              <div class="alert alert-success">
+              <p class="text-center fs-3 entry">Tidak Ada Data Ditampilkan</p>
+              </div>
+              @endif
+            </p>
               <!-- Page title actions -->
               <div class="col-auto ms-auto d-print-none">
                 <div >
@@ -49,18 +54,20 @@
                     </div>
                   </div>
                   <div class="d-flex">
-                     @if(!$user->approved)
-                        <form method="POST" action="{{ route('users.approve', $user) }}" class="card-btn">
-                            @csrf
-                            @method('put')
-                            <button class="btn card-btn" type="submit">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-user-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4" /><path d="M15 19l2 2l4 -4" /></svg> Approve
-                            </button>
-                        </form>
-                     @endif
-                   
-                    <a href="#" class="card-btn"><!-- Download SVG icon from http://tabler.io/icons/icon/phone -->
-                      <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-user-minus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4c.348 0 .686 .045 1.009 .128" /><path d="M16 19h6" /></svg> Hapus</a>
+                      <form method="POST" action="{{ route('users.approve', $user) }}" class="card-btn">
+                          @csrf
+                          @method('put')
+                          <button class="btn card-btn" type="submit" {{ $user->is_approved==true ? 'disabled' : '' }}>
+                              <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-user-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4" /><path d="M15 19l2 2l4 -4" /></svg> Approve
+                          </button>
+                      </form>
+                      <form method="POST" action="{{ route('users.reject', $user) }}" class="card-btn">
+                          @csrf
+                          @method('put')
+                          <button class="btn card-btn" type="submit" {{ $user->is_approved==false ? 'disabled' : '' }}>
+                              <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-user-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4c.348 0 .686 .045 1.009 .128" /><path d="M16 19l2 -2m0 -2l-2 -2" /></svg> Reject
+                          </button>
+                      </form>
                   </div>
                 </div>
               </div>
@@ -71,8 +78,7 @@
         </div>
         <div class="d-flex justify-content-center mt-4">
               {{ $users->withQueryString()->links('pagination::bootstrap-5') }}
-              
-       </div>
+        </div>
         <!-- END PAGE BODY -->
 
 @endsection

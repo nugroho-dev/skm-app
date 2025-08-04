@@ -16,7 +16,10 @@ class UserController extends Controller
         $search = $request->search;
         $query->where(function($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%");
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhereHas('institution', function ($q2) use ($search) {
+                  $q2->where('name', 'like', "%{$search}%");
+              });
         });
     }
 
@@ -34,5 +37,15 @@ class UserController extends Controller
 
     User::where('id', $user->id)->update(['is_approved' => true]);
     return back()->with('success', 'User telah disetujui.');
+    }
+    public function reject(User $user)
+    {
+        // Tambahkan ini untuk memastikan hanya super_admin
+    if (!auth()->user()->hasRole('super_admin')) {
+        abort(403, 'Unauthorized');
+    }
+
+    User::where('id', $user->id)->update(['is_approved' => false]);
+    return back()->with('success', 'User telah ditolak.');
     }
 }
