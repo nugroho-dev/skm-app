@@ -7,16 +7,17 @@
         <div class="row justify-content-center">
 
         <div class="col-md-6 col-sm-12">
-                <form class="card" action="{{ route('institutions.store') }}" method="POST">
+                <form class="card" action="{{ route('institutions.update', $institution) }}" method="POST">
                     @csrf
+                     @method('PUT')
                   <div class="card-header">
-                    <h3 class="card-title">Form Tambah Instansi</h3>
+                    <h3 class="card-title">Form Edit Instansi</h3>
                   </div>
                   <div class="card-body">
                     <div class="mb-3">
-                      <label class="form-label required">Nama Instansi</label>
+                      <label class="form-label required">Nama Instansi {{ $institution->name }}</label>
                       <div>
-                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama Instansi" value="{{ old('name', $institution->name ?? '') }}" required>
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama Instansi" value="{{ old('name', $institution->name) }}" required>
                           @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                           @enderror
@@ -28,7 +29,7 @@
                          <select class="form-select @error('institution_group') is-invalid @enderror" name="institution_group">
                             <option value="">-- Pilih --</option>
                             @foreach($groups as $group)
-                            <option value="{{ $group->slug }}" {{ old('institution_group', $institution->institution_group->slug ?? '') == $group->slug ? 'selected' : '' }}>{{ $group->name }}</option>
+                            <option value="{{ $group->slug }}" {{ old('institution_group', $institution->group->slug ?? '') == $group->slug ? 'selected' : '' }}>{{ $group->name }}</option>
                             @endforeach
                         </select>
                         @error('institution_group')

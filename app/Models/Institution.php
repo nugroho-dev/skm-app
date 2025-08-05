@@ -21,6 +21,8 @@ class Institution extends Model
     }
     protected $fillable = ['name', 'mpp_id', 'institution_group_id', 'slug'];
 
+    protected $dates = ['deleted_at'];
+    
     public function mpp()
     {
         return $this->belongsTo(Mpp::class);

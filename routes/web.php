@@ -5,6 +5,7 @@ use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\InstitutionController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
@@ -27,7 +28,17 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
 Route::post('/register', [RegisteredUserController::class, 'store'])->middleware(['guest', 'throttle:register', VerifyRecaptcha::class])->name('register');
 Route::middleware(['auth', 'verified','approved', 'role:admin_instansi'])->group(function () {
     Route::get('/dashboard/instansi', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('/instansi/services', ServiceController::class)->names([
+            'index' => 'instansi.services.index',
+            'create' => 'instansi.services.create',
+            'store' => 'instansi.services.store',
+            'show' => 'instansi.services.show',
+            'edit' => 'instansi.services.edit',
+            'update' => 'instansi.services.update',
+            'destroy' => 'instansi.services.destroy',
+        ]);
 });
+
 Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -39,4 +50,7 @@ Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(f
     Route::get('/instansi/{institution}/edit', [InstitutionController::class, 'edit'])->name('institutions.edit');
     Route::put('/instansi/{institution}', [InstitutionController::class, 'update'])->name('institutions.update');
     Route::delete('/instansi/{institution}', [InstitutionController::class, 'destroy'])->name('institutions.destroy');
+    Route::get('/services/{institution}', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/services/create/{institution}', [ServiceController::class, 'create']);
+    Route::resource('/services', ServiceController::class);
 });
