@@ -7,8 +7,9 @@
         <div class="row justify-content-center">
 
         <div class="col-md-6 col-sm-12">
-                <form class="card" action="{{ auth()->user()->hasRole('super_admin') ? route('service.store') : route('instansi.services.store') }}" method="POST">
+                <form class="card" action="{{ auth()->user()->hasRole('super_admin') ? route('service.update', $service) : route('instansi.services.update', $service) }}" method="POST">
                     @csrf
+                    @method('PUT')
                   <div class="card-header">
                     <h3 class="card-title">Form Tambah {{ $title }}</h3>
                   </div>
@@ -16,7 +17,7 @@
                     <div class="mb-3">
                       <label class="form-label required">Nama Layanan</label>
                       <div>
-                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama Layanan Instansi" value="{{ old('name', $institution->name ?? '') }}" required>
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama Layanan Instansi" value="{{ old('name', $service->name ?? '') }}" required>
                           @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                           @enderror

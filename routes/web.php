@@ -27,8 +27,8 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->middleware(['guest', 'throttle:register', VerifyRecaptcha::class])->name('register');
 Route::middleware(['auth', 'verified','approved', 'role:admin_instansi'])->group(function () {
-    Route::get('/dashboard/instansi', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('/instansi/services', ServiceController::class)->names([
+    Route::get('/dashboard/instansi', [DashboardController::class, 'index'])->name('instansi.dashboard');
+    Route::resource('/instansi/service', ServiceController::class)->names([
             'index' => 'instansi.services.index',
             'create' => 'instansi.services.create',
             'store' => 'instansi.services.store',
@@ -50,7 +50,7 @@ Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(f
     Route::get('/instansi/{institution}/edit', [InstitutionController::class, 'edit'])->name('institutions.edit');
     Route::put('/instansi/{institution}', [InstitutionController::class, 'update'])->name('institutions.update');
     Route::delete('/instansi/{institution}', [InstitutionController::class, 'destroy'])->name('institutions.destroy');
-    Route::get('/services/{institution}', [ServiceController::class, 'index'])->name('services.index');
-    Route::get('/services/create/{institution}', [ServiceController::class, 'create']);
-    Route::resource('/services', ServiceController::class);
+    //Route::get('/services/{institution}', [ServiceController::class, 'index'])->name('services.index');
+    //Route::get('/services/create/{institution}', [ServiceController::class, 'create'])->name('services.create');
+    Route::resource('/service', ServiceController::class);
 });

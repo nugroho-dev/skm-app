@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Response;
 use App\Traits\HasUuid;
 use Illuminate\Support\Str;
+use Spatie\Permission\Traits\HasRoles;
 
 class Service extends Model
 {
-    use HasFactory, SoftDeletes, HasUuid;
+    use HasFactory, SoftDeletes, HasUuid, HasRoles;
 
     protected static function booted()
     {

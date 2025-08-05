@@ -99,7 +99,7 @@
                                 <button type="submit" class="dropdown-item" > Hapus </button>
                                 </form>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="/services/{{ $institution->slug }}">Layanan </a>
+                                <a class="dropdown-item" href="{{ route('service.index', ['institution' => $institution->id]) }}">Layanan </a>
                               </div>
                             </span>
                           </td>
