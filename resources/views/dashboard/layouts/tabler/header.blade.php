@@ -33,7 +33,7 @@
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-            <a href="#" class="dropdown-item">Profile</a>
+            <a href="{{ auth()->user()->hasRole('super_admin') ? route('profile.show') : route('instansi.profile.show') }}" class="dropdown-item">Profile</a>
             <div class="dropdown-divider"></div>
              <form action="/logout" method="post">
                 @csrf

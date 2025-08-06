@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\QuestionerController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
@@ -26,9 +27,35 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->name('login');
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->middleware(['guest', 'throttle:register', VerifyRecaptcha::class])->name('register');
-Route::middleware(['auth', 'verified','approved', 'role:admin_instansi'])->group(function () {
-    Route::get('/dashboard/instansi', [DashboardController::class, 'index'])->name('instansi.dashboard');
-    Route::resource('/instansi/service', ServiceController::class)->names([
+
+Route::middleware(['auth', 'verified', 'approved'])->group(function () {
+  
+    // Super Admin routes
+    Route::middleware('role:super_admin')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::put('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
+        Route::put('/users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
+        Route::get('/instansi', [InstitutionController::class, 'index'])->name('institutions.index');
+        Route::get('/instansi/create', [InstitutionController::class, 'create'])->name('institutions.create');
+        Route::post('/instansi', [InstitutionController::class, 'store'])->name('institutions.store');
+        Route::get('/instansi/{institution}/edit', [InstitutionController::class, 'edit'])->name('institutions.edit');
+        Route::put('/instansi/{institution}', [InstitutionController::class, 'update'])->name('institutions.update');
+        Route::delete('/instansi/{institution}', [InstitutionController::class, 'destroy'])->name('institutions.destroy');
+        //Route::get('/services/{institution}', [ServiceController::class, 'index'])->name('services.index');
+        //Route::get('/services/create/{institution}', [ServiceController::class, 'create'])->name('services.create');
+        Route::resource('/service', ServiceController::class);
+        Route::get('/profile', function () {
+            $title = 'Profil Pengguna';
+            return view('dashboard.profile.index', compact('title'));
+        })->name('profile.show');
+        Route::get('/questioner', [QuestionerController::class, 'index'])->name('questioner.index');
+    });
+
+    // Admin Instansi routes
+    Route::middleware('role:admin_instansi')->group(function () {
+        Route::get('/dashboard/instansi', [DashboardController::class, 'index'])->name('instansi.dashboard');
+        Route::resource('/instansi/service', ServiceController::class)->names([
             'index' => 'instansi.services.index',
             'create' => 'instansi.services.create',
             'store' => 'instansi.services.store',
@@ -37,20 +64,9 @@ Route::middleware(['auth', 'verified','approved', 'role:admin_instansi'])->group
             'update' => 'instansi.services.update',
             'destroy' => 'instansi.services.destroy',
         ]);
-});
-
-Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::put('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
-    Route::put('/users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
-    Route::get('/instansi', [InstitutionController::class, 'index'])->name('institutions.index');
-    Route::get('/instansi/create', [InstitutionController::class, 'create'])->name('institutions.create');
-    Route::post('/instansi', [InstitutionController::class, 'store'])->name('institutions.store');
-    Route::get('/instansi/{institution}/edit', [InstitutionController::class, 'edit'])->name('institutions.edit');
-    Route::put('/instansi/{institution}', [InstitutionController::class, 'update'])->name('institutions.update');
-    Route::delete('/instansi/{institution}', [InstitutionController::class, 'destroy'])->name('institutions.destroy');
-    //Route::get('/services/{institution}', [ServiceController::class, 'index'])->name('services.index');
-    //Route::get('/services/create/{institution}', [ServiceController::class, 'create'])->name('services.create');
-    Route::resource('/service', ServiceController::class);
+        Route::get('/instansi/profile', function () {
+            $title = 'Profil Pengguna';
+            return view('dashboard.profile.index', compact('title'));
+        })->name('instansi.profile.show');
+    });
 });
