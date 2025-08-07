@@ -17,21 +17,21 @@
     <!-- BEGIN PAGE LEVEL STYLES -->
     
 </style>
-    <link href="/tabler/libs/jsvectormap/dist/jsvectormap.css?1744816593" rel="stylesheet" />
+    <link href=" {{ asset('tabler/libs/jsvectormap/dist/jsvectormap.css?1744816593') }}" rel="stylesheet" />
     <!-- END PAGE LEVEL STYLES -->
     <!-- BEGIN GLOBAL MANDATORY STYLES -->
-    <link href="/tabler/dist/css/tabler.css?1744816593" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler.css?1744816593') }}" rel="stylesheet" />
     <!-- END GLOBAL MANDATORY STYLES -->
     <!-- BEGIN PLUGINS STYLES -->
-    <link href="/tabler/dist/css/tabler-flags.css?1744816593" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-socials.css?1744816593" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-payments.css?1744816593" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-vendors.css?1744816593" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-marketing.css?1744816593" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-themes.css?1744816593" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler-flags.css?1744816593') }}" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler-socials.css?1744816593') }}" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler-payments.css?1744816593') }}" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler-vendors.css?1744816593') }}" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler-marketing.css?1744816593') }}" rel="stylesheet" />
+    <link href=" {{ asset('tabler/dist/css/tabler-themes.css?1744816593') }}" rel="stylesheet" />
     <!-- END PLUGINS STYLES -->
     <!-- BEGIN DEMO STYLES -->
-    <link href="/tabler/preview/css/demo.css?1744816593" rel="stylesheet" />
+    <link href=" asset(/tabler/preview/css/demo.css?1744816593" rel="stylesheet" />
     <!-- END DEMO STYLES -->
     <!-- BEGIN CUSTOM FONT -->
     <style nonce="">
@@ -41,7 +41,7 @@
   </head>
   <body class="layout-fluid">
     <!-- BEGIN GLOBAL THEME SCRIPT -->
-    <script src="/tabler/dist/js/tabler-theme.min.js?1744816593"></script>
+    <script src="{{ asset('tabler/dist/js/tabler-theme.min.js?1744816593') }}"></script>
     <!-- END GLOBAL THEME SCRIPT -->
     <div class="page">
       <!--  BEGIN SIDEBAR  -->
@@ -335,16 +335,16 @@
     </div>
     <!-- BEGIN PAGE LIBRARIES -->
     
-    <script src="/tabler/libs/apexcharts/dist/apexcharts.min.js?1744816593" defer></script>
-    <script src="/tabler/libs/jsvectormap/dist/jsvectormap.min.js?1744816593" defer></script>
-    <script src="/tabler/libs/jsvectormap/dist/maps/world.js?1744816593" defer></script>
-    <script src="/tabler/libs/jsvectormap/dist/maps/world-merc.js?1744816593" defer></script>
+    <script src="{{ asset('tabler/libs/apexcharts/dist/apexcharts.min.js?1744816593')}}" defer></script>
+    <script src="{{ asset('tabler/libs/jsvectormap/dist/jsvectormap.min.js?1744816593')}}" defer></script>
+    <script src="{{ asset('tabler/libs/jsvectormap/dist/maps/world.js?1744816593')}}" defer></script>
+    <script src="{{ asset('tabler/libs/jsvectormap/dist/maps/world-merc.js?1744816593')}}" defer></script>
     <!-- END PAGE LIBRARIES -->
     <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
-    <script src="/tabler/dist/js/tabler.min.js?1744816593" defer></script>
+    <script src="{{ asset('tabler/dist/js/tabler.min.js?1744816593')}}" defer></script>
     <!-- END GLOBAL MANDATORY SCRIPTS -->
     <!-- BEGIN DEMO SCRIPTS -->
-    <script src="/tabler/preview/js/demo.min.js?1744816593" defer></script>
+    <script src="{{ asset('tabler/preview/js/demo.min.js?1744816593')}}" defer></script>
     <!-- END DEMO SCRIPTS -->
     <!-- BEGIN PAGE SCRIPTS -->
     <script nonce="">
