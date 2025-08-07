@@ -6,7 +6,7 @@
       <div class="container container-tight py-4">
         <div class="text-center mb-4">
           <a href="." aria-label="Tabler" class="navbar-brand navbar-brand-autodark">
-            <img src="/img/sisukma-high-resolution-logo-transparent.png" width="100" height="100%" alt="Tabler logo" nonce="">
+            <img src="{{ asset('img/sisukma-high-resolution-logo-transparent.png')}}" width="100" height="100%" alt="Tabler logo" nonce="">
           </a>
             
         </div>
@@ -83,7 +83,7 @@
           
           
         </div>
-        <div class="text-center text-secondary mt-3">Belum Punya Akun? <a href="/register" tabindex="-1">Daftar</a></div>
+        <div class="text-center text-secondary mt-3">Belum Punya Akun? <a href="{{ route('register') }}" tabindex="-1">Daftar</a></div>
       </div>
     </div>
     <!-- Include Google reCAPTCHA script -->
