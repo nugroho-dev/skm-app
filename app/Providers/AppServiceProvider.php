@@ -8,6 +8,7 @@ use App\Providers\FortifyServiceProvider;
 use App\Http\Responses\CustomLoginResponse;
 use Laravel\Fortify\Contracts\LoginResponse;
 use App\Services\MenuService;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,5 +38,9 @@ class AppServiceProvider extends ServiceProvider
 
         $view->with('menus', $menus);
         });
+
+        if (config('app.url')) {
+        URL::forceRootUrl(config('app.url'));
+        }
     }
 }
