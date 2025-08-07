@@ -15,14 +15,13 @@ class OccupationSeeder extends Seeder
     public function run(): void
     {
         $occupations = [
-            'Pelajar/Mahasiswa',
+            'Tidak Bekerja',
             'Pegawai Negeri',
             'Pegawai Swasta',
             'Wiraswasta',
-            'Pensiunan',
-            'Ibu Rumah Tangga',
-            'Petani/Nelayan',
-            'Lainnya',
+            'Petani/Peternak',
+            'TNI',
+            'Polri',
         ];
 
         foreach ($occupations as $name) {

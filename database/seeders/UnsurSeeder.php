@@ -16,14 +16,14 @@ class UnsurSeeder extends Seeder
     {
         $unsurs = [
             'Persyaratan',
-            'Prosedur',
-            'Waktu Pelayanan',
+            'Sistem, Mekanisme, dan Prosedur',
+            'Waktu Penyelesaian',
             'Biaya/Tarif',
             'Produk Spesifikasi Jenis Pelayanan',
             'Kompetensi Pelaksana',
             'Perilaku Pelaksana',
-            'Sarana dan Prasarana',
             'Penanganan Pengaduan, Saran, dan Masukan',
+            'Sarana dan Prasarana',
         ];
 
         foreach ($unsurs as $index => $name) {

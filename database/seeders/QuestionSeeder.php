@@ -17,16 +17,32 @@ class QuestionSeeder extends Seeder
     {
          $pertanyaanPerUnsur = [
             'Persyaratan' => [
-                'Informasi tentang persyaratan pelayanan mudah diperoleh.',
-                'Persyaratan pelayanan mudah dipenuhi.'
+                'Bagaimana pendapat Saudara tentang kesesuaian persyaratan pelayanan dengan jenis pelayanannya ?'
             ],
-            'Prosedur' => [
-                'Prosedur pelayanan mudah dipahami.',
-                'Prosedur pelayanan tidak berbelit-belit.'
+            'Sistem, Mekanisme, dan Prosedur' => [
+                'Bagaimana pemahaman Saudara tentang kemudahan prosedur pelayanan di unit ini ?'
             ],
-            'Waktu Pelayanan' => [
-                'Waktu pelayanan sesuai dengan standar yang ditetapkan.',
-                'Pelayanan diselesaikan tepat waktu.'
+            'Waktu Penyelesaian' => [
+                'Bagaimana pendapat Saudara tentang kecepatan waktu dalam memberikan pelayanan ?'
+            ],
+            'Biaya/Tarif'=> [
+                'Bagaimana pendapat Saudara tentang kewajaran biaya / tarif dalam pelayanan ?'
+            ],
+            'Produk Spesifikasi Jenis Pelayanan'=> [
+                'Bagaimana pendapat Saudara tentang kesesuaian produk pelayanan antara yang tercantum dalam standar pelayanan dengan hasil yang diberikan ?'
+            ],
+            'Kompetensi Pelaksana'=> [
+                'Bagaimana pendapat Saudara tentang kompetensi/kemampuan petugas dalam pelayanan ?'
+            ],
+            'Perilaku Pelaksana'=> [
+                'Bagamana pendapat saudara perilaku petugas dalam pelayanan terkait kesopanan dan keramahan ?
+'
+            ],
+            'Penanganan Pengaduan, Saran, dan Masukan'=> [
+                'Bagaimana pendapat Saudara tentang kualitas sarana dan prasarana ?'
+            ],
+            'Sarana dan Prasarana'=> [
+                'Bagaimana pendapat Saudara tentang penanganan pengaduan pengguna layanan ?'
             ],
         ];
 

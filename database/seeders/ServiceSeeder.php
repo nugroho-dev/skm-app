@@ -17,16 +17,16 @@ class ServiceSeeder extends Seeder
     {
         // Contoh layanan per instansi berdasarkan nama
         $data = [
-            'Dinas Kependudukan Kota Magelang' => [
+            'Dinas Kependudukan dan Pencatatan Sipil' => [
                 'Pembuatan KTP',
                 'Pembuatan KK',
                 'Pembuatan Akta Kelahiran'
             ],
-            'Dinas Ketahanan Pangan Kota Magelang' => [
+            'Dinas Sosial Kota Magelang' => [
                 'Bantuan Sosial Tunai',
                 'Layanan PKH'
             ],
-            'Dinas Arsip dan Perpustakaan Kota Magelang' => [
+            'Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu' => [
                 'Izin Usaha Mikro',
                 'Izin Mendirikan Bangunan'
             ],

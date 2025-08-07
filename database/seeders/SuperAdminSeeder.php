@@ -33,14 +33,51 @@ class SuperAdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'superadmin@example.com'],
             [
-                'name' => 'Super Admin',
+                'name' => 'Agus Makmur',
                 'email_verified_at' => now(),
-                'password' => Hash::make('SuperSecure123!'), // Ganti dengan password yang aman
+                'password' => Hash::make('Super1@123adminS'), // Ganti dengan password yang aman
                 'role' => 'super_admin',
                 'is_approved' => true,
                 'institution_id' => $institution->id,
             
             ]
         );
+        User::updateOrCreate(
+            ['email' => 'superadmin2@example.com'],
+            [
+                'name' => 'Sonal Ravi Sadarangani',
+                'email_verified_at' => now(),
+                'password' => Hash::make('Super1@123adminS'), // Ganti dengan password yang aman
+                'role' => 'super_admin',
+                'is_approved' => true,
+                'institution_id' => $institution->id,
+            
+            ]
+        );
+         User::updateOrCreate(
+            ['email' => 'admin.instansi@gmail.com'],
+            [
+                'name' => 'Syaiful Zen',
+                'email_verified_at' => now(),
+                'password' => Hash::make('Intansi1@123admiN'), // Ganti dengan password yang aman
+                'role' => 'super_admin',
+                'is_approved' => true,
+                'institution_id' => $institution->id,
+            
+            ]
+        );
+         User::updateOrCreate(
+            ['email' => 'admin.instansi2@gmail.com'],
+            [
+                'name' => 'Tyty Chandra',
+                'email_verified_at' => now(),
+                'password' => Hash::make('Intansi2@123admiN'), // Ganti dengan password yang aman
+                'role' => 'super_admin',
+                'is_approved' => true,
+                'institution_id' => $institution->id,
+            
+            ]
+        );
+
     }
 }

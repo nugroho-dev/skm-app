@@ -32,8 +32,15 @@ class InstitutionSeeder extends Seeder
 
         // 1. Instansi bergabung dengan MPP & instansi induk Kota Magelang
         $data1 = [
-            'Dinas Kependudukan Kota Magelang',
+            'Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu',
             'Dinas Pendidikan Kota Magelang',
+            'Dinas Kesehatan Kota Magelang',
+            'Dinas Sosial Kota Magelang',
+            'Dinas Kependudukan dan Pencatatan Sipil',
+            'kecamatan Magelang Utara',
+            'kecamatan Magelang Tengah',
+            'kecamatan Magelang Selatan',
+            'badan pengelolaan keuangan dan aset daerah',
         ];
         foreach ($data1 as $name) {
             Institution::create([
@@ -46,8 +53,13 @@ class InstitutionSeeder extends Seeder
 
         // 2. Instansi bergabung dengan MPP & instansi induk dari luar Kota Magelang
         $data2 = [
-            'Imigrasi Wilayah Kedu',
-            'Kementerian Hukum dan HAM RI',
+            'Bank Jateng',
+            'BPJS Ketenagakerjaan',
+            'BPJS Kesehatan',
+            'Kantor Imigrasi Kelas II TPI Magelang',
+            'Kantor Pelayanan Pajak Pratama Magelang',
+            'Kantor Pertanahan Kota Magelang',
+            'Kantor Pos Magelang',
         ];
         foreach ($data2 as $name) {
             Institution::create([
@@ -62,7 +74,10 @@ class InstitutionSeeder extends Seeder
         //    tapi instansi induk Kota Magelang → mpp_id diisi dengan MPP luar
         $data3 = [
             'Dinas Arsip dan Perpustakaan Kota Magelang',
-            'Dinas Ketahanan Pangan Kota Magelang',
+            'Dinas Pertanian dan Ketahanan Pangan Kota Magelang',
+            'dinas Pemuda, Olahraga, dan Pariwisata',
+            'Satpol PP Kota Magelang',
+            'Badan Kepegawaian dan Pengembangan Sumber Daya Manusia',
         ];
         foreach ($data3 as $name) {
             Institution::create([
