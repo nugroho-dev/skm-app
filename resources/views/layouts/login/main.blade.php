@@ -15,18 +15,18 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>@yield('title', config('app.name'))</title>
     <!-- BEGIN GLOBAL MANDATORY STYLES -->
-    <link href="/tabler/dist/css/tabler.css?1744816591" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler.css?1744816591') }}" rel="stylesheet" />
     <!-- END GLOBAL MANDATORY STYLES -->
     <!-- BEGIN PLUGINS STYLES -->
-    <link href="/tabler/dist/css/tabler-flags.css?1744816591" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-socials.css?1744816591" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-payments.css?1744816591" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-vendors.css?1744816591" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-marketing.css?1744816591" rel="stylesheet" />
-    <link href="/tabler/dist/css/tabler-themes.css?1744816591" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler-flags.css?1744816591') }}" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler-socials.css?1744816591') }}" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler-payments.css?1744816591') }}" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler-vendors.css?1744816591') }}" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler-marketing.css?1744816591') }}" rel="stylesheet" />
+    <link href="{{ asset('tabler/dist/css/tabler-themes.css?1744816591') }}" rel="stylesheet" />
     <!-- END PLUGINS STYLES -->
     <!-- BEGIN DEMO STYLES -->
-    <link href="/tabler/preview/css/demo.css?1744816591" rel="stylesheet" />
+    <link href="{{ asset('tabler/preview/css/demo.css?1744816591') }}" rel="stylesheet" />
     <!-- END DEMO STYLES -->
     <!-- BEGIN CUSTOM FONT -->
     <style nonce="">
@@ -36,7 +36,7 @@
   </head>
   <body>
     <!-- BEGIN GLOBAL THEME SCRIPT -->
-    <script src="/tabler/dist/js/tabler-theme.min.js?1744816591"></script>
+    <script src="{{ asset('tabler/dist/js/tabler-theme.min.js?1744816591') }}"></script>
     <!-- END GLOBAL THEME SCRIPT -->
     @yield('container')
     <div class="settings">
@@ -309,10 +309,10 @@
       </form>
     </div>
     <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
-    <script src="/tabler/dist/js/tabler.min.js?1744816591" defer></script>
+    <script src="{{ asset('tabler/dist/js/tabler.min.js?1744816591') }}" defer></script>
     <!-- END GLOBAL MANDATORY SCRIPTS -->
     <!-- BEGIN DEMO SCRIPTS -->
-    <script src="/tabler/preview/js/demo.min.js?1744816591" defer></script>
+    <script src="{{ asset('tabler/preview/js/demo.min.js?1744816591') }}" defer></script>
     <!-- END DEMO SCRIPTS -->
     <!-- BEGIN PAGE SCRIPTS -->
     
