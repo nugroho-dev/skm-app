@@ -35,7 +35,7 @@
           <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
             <a href="{{ auth()->user()->hasRole('super_admin') ? route('profile.show') : route('instansi.profile.show') }}" class="dropdown-item">Profile</a>
             <div class="dropdown-divider"></div>
-             <form action="/logout" method="post">
+             <form action="{{ route('logout') }}" method="post">
                 @csrf
                 <button type="submit" class="dropdown-item">Logout</button>
               </form>
