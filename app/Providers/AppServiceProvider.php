@@ -39,8 +39,7 @@ class AppServiceProvider extends ServiceProvider
         $view->with('menus', $menus);
         });
 
-        if (config('app.url')) {
         URL::forceRootUrl(config('app.url'));
-        }
+        
     }
 }
