@@ -38,14 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
         $view->with('menus', $menus);
         });
-        // Memastikan URL aplikasi menggunakan skema yang benar
-        
-            URL::forceRootUrl(config('app.url'));
-        
-
-        // Jika menggunakan HTTPS, paksa skema HTTPS
-        
-            URL::forceScheme('https');
+    
         
     }
 }
