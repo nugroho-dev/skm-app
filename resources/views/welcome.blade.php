@@ -122,7 +122,7 @@
             <h1>SiSUKMA</h1>
             <p class="lead">SISUKMA (Sistem Informasi Survei Kepuasan Masyarakat) adalah platform digital yang dirancang untuk mengukur tingkat kepuasan masyarakat terhadap layanan publik yang diselenggarakan oleh instansi pemerintah. Kami percaya bahwa suara Anda adalah dasar perbaikan layanan publik. Melalui SISUKMA, Anda dapat memberikan penilaian dan saran secara langsung, cepat, dan transparan</p>
             <p class="lead">
-                <a href="/survey/select" class="btn btn-lg btn-light fw-bold border-white bg-white">Survey Sekarang</a>
+                <a href="{{ route('survey.selectCity') }}" class="btn btn-lg btn-light fw-bold border-white bg-white">Survey Sekarang</a>
             </p>
         </main>
         <footer class="mt-auto text-white-50">
