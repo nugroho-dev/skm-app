@@ -7,8 +7,12 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\QuestionerController;
+use App\Http\Controllers\EducationController;
+use App\Http\Controllers\OccupationController;
+use App\Http\Controllers\ElementController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
+use App\Models\Occupation;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use Laravel\Fortify\Fortify;
@@ -50,6 +54,30 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
             return view('dashboard.profile.index', compact('title'));
         })->name('profile.show');
         Route::get('/questioner', [QuestionerController::class, 'index'])->name('questioner.index');
+        Route::resource('pendidikan', EducationController::class)->names([
+            'index' => 'pendidikan.index',
+            'create' => 'pendidikan.create',
+            'store' => 'pendidikan.store',
+            'edit' => 'pendidikan.edit',
+            'update' => 'pendidikan.update',
+            'destroy' => 'pendidikan.destroy',
+      ]);
+        Route::resource('pekerjaan', OccupationController::class)->names([
+            'index' => 'pekerjaan.index',
+            'create' => 'pekerjaan.create',
+            'store' => 'pekerjaan.store',
+            'edit' => 'pekerjaan.edit',
+            'update' => 'pekerjaan.update',
+            'destroy' => 'pekerjaan.destroy',
+        ]);
+        Route::resource('unsur', ElementController::class)->names([
+            'index' => 'unsur.index',
+            'create' => 'unsur.create',
+            'store' => 'unsur.store',
+            'edit' => 'unsur.edit',
+            'update' => 'unsur.update',
+            'destroy' => 'unsur.destroy',
+        ]);
     });
 
     // Admin Instansi routes
