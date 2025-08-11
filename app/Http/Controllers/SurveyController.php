@@ -56,7 +56,10 @@ class SurveyController extends Controller
     public function form($slug)
     {
         $institution = Institution::where('slug', $slug)->with('services')->firstOrFail();
-        $questions = Question::with('choices', 'unsur')->get();
+        $questions = Question::with([
+                'choices' => function ($q) {
+                $q->orderBy('score', 'asc');
+            }, 'unsur'])->get();
         $occupations = Occupation::all();
         $educations = Education::all();
         return view('survey.form', compact('institution', 'questions', 'occupations', 'educations'));
@@ -69,7 +72,6 @@ class SurveyController extends Controller
         $institution = Institution::where('slug', $slug)->firstOrFail();
     
         $rules = [
-           
             'gender'         => 'required|in:L,P',
             'age'            => 'required|integer|min:18|max:100',
             'education_id'   => 'required|exists:educations,id',

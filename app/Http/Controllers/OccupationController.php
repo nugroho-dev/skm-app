@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Occupation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class OccupationController extends Controller
 {
@@ -38,7 +39,7 @@ class OccupationController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate(['type' => 'required|string|max:100']);
+        $request->validate(['type' => 'required|string|max:100|unique:occupations,type']);
 
         Occupation::create([
             'type' => $request->type
@@ -74,9 +75,16 @@ class OccupationController extends Controller
         if (Auth::user()->hasRole('admin_instansi') ) {
             abort(403, 'Tidak diizinkan Menagkses halaman ini.');
         }
-
-        $request->validate(['type' => 'required|string|max:100']);
-        $pekerjaan->update(['type' => $request->type]);
+        $validated = $request->validate([
+            'type' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('occupations')->ignore($pekerjaan->id),
+            ],
+        ]);
+       
+        $pekerjaan->update($validated);
 
         return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil diperbarui');
     }

@@ -17,8 +17,18 @@
                     <div class="mb-3">
                       <label class="form-label required">Unsur</label>
                       <div>
-                        <input type="text" name="name" class="form-control @error('type') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama unsur" value="{{ old('name', $unsur->name ?? '') }}" required>
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama unsur" value="{{ old('name', $unsur->name ?? '') }}" required>
                           @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                          @enderror
+                      </div>
+                      
+                    </div>
+                     <div class="mb-3">
+                      <label class="form-label required">Label Unsur</label>
+                      <div>
+                        <input type="text" name="label_order" class="form-control @error('label_order') is-invalid @enderror" aria-describedby="namaInstansi" placeholder="Masukan Nama unsur" value="{{ old('label_order', $unsur->label_order ?? '') }}" required>
+                          @error('label_order')
                             <div class="invalid-feedback">{{ $message }}</div>
                           @enderror
                       </div>

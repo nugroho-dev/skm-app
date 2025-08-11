@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Unsur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ElementController extends Controller
 {
@@ -38,10 +39,12 @@ class ElementController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:100']);
+        $request->validate(['name' => 'required|string|max:100|unique:unsurs,name',
+                            'label_order' => 'required|number|max:10|unique:unsurs,label_order']);
 
         Unsur::create([
-            'name' => $request->name
+            'name' => $request->name,
+            'label_order' => $request->label_order,
         ]);
         return redirect()->route('unsur.index')->with('success', 'Unsur berhasil ditambahkan');
     }
@@ -76,8 +79,24 @@ class ElementController extends Controller
             abort(403, 'Tidak diizinkan Menagkses halaman ini.');
         }
 
-        $request->validate(['name' => 'required|string|max:100']);
-        $unsur->update(['name' => $request->name]);
+        // Validasi input
+       $validated = $request->validate([
+        'name' => [
+            'required',
+            'string',
+            'max:100',
+            Rule::unique('unsurs')->ignore($unsur->id),
+        ],
+        'label_order' => [
+            'required',
+            'string',
+            'max:10',
+            Rule::unique('unsurs')->ignore($unsur->id),
+        ],
+    ]);
+        
+        // Update data
+        $unsur->update($validated);
 
         return redirect()->route('unsur.index')->with('success', 'Unsur berhasil diperbarui');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Education;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class EducationController extends Controller
 {
@@ -38,7 +39,7 @@ class EducationController extends Controller
      */
     public function store(Request $request)
     {
-       $request->validate(['level' => 'required|string|max:100']);
+       $request->validate(['level' => 'required|string|max:100|unique:educations,level']);
 
         Education::create([
             'level' => $request->level
@@ -76,8 +77,16 @@ class EducationController extends Controller
             abort(403, 'Tidak diizinkan Menagkses halaman ini.');
         }
 
-        $request->validate(['level' => 'required|string|max:100']);
-        $pendidikan->update(['level' => $request->level]);
+        $validated = $request->validate([
+            'level' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('educations')->ignore($pendidikan->id),
+            ],
+        ]);
+        
+        $pendidikan->update($validated);
 
         return redirect()->route('pendidikan.index')->with('success', 'Pendidikan berhasil diperbarui');
     }

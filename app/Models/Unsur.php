@@ -19,7 +19,7 @@ class Unsur extends Model
         });
     }
 
-    protected $fillable = ['uuid','name','slug'];
+    protected $fillable = ['uuid','name','slug', 'label_order'];
 
     public function questions()
     {

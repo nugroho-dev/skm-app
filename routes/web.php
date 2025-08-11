@@ -10,6 +10,7 @@ use App\Http\Controllers\QuestionerController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\OccupationController;
 use App\Http\Controllers\ElementController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use App\Models\Occupation;
@@ -54,6 +55,12 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
             return view('dashboard.profile.index', compact('title'));
         })->name('profile.show');
         Route::get('/questioner', [QuestionerController::class, 'index'])->name('questioner.index');
+        Route::get('/question', [QuestionController::class, 'index'])->name('question.index');
+        Route::get('/question/create', [QuestionController::class, 'create'])->name('question.create');
+        Route::post('/question', [QuestionController::class, 'store'])->name('question.store');
+        Route::get('/question/{unsur}/edit/{question}', [QuestionController::class, 'edit'])->name('question.edit');
+        Route::put('/question/{unsur}/update/{question}', [QuestionController::class, 'update'])->name('question.update');
+        Route::delete('/question/{unsur}/delete/{question}', [QuestionController::class, 'destroy'])->name('question.destroy');
         Route::resource('pendidikan', EducationController::class)->names([
             'index' => 'pendidikan.index',
             'create' => 'pendidikan.create',

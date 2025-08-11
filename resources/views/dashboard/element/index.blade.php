@@ -57,8 +57,7 @@
                           
                           <th class="w-1">No.</th>
                           <th>Jenis Unsur</th>
-                          
-                          
+                          <th>Label Unsur</th>
                           <th></th>
                         </tr>
                       </thead>
@@ -67,7 +66,8 @@
                         <tr>
                           
                           <td><span class="text-secondary">{{ $elements->firstItem() + $index }}</span></td>
-                          <td><a href="invoice.html" class="text-reset" tabindex="-1">{{ $element->name }}</a></td>
+                          <td>{{ $element->name }}</td>
+                          <td>U{{ $element->label_order }}</td>
                           <td class="text-end">
                             <span class="dropdown">
                               <button class="btn dropdown-toggle align-text-top" data-bs-boundary="viewport" data-bs-toggle="dropdown">Actions</button>
