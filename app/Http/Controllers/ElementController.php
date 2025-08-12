@@ -16,7 +16,7 @@ class ElementController extends Controller
     {
         $title = 'Manajemen Unsur';
         if (Auth::user()->hasRole('super_admin')) {
-            $elements= Unsur::paginate(15);
+            $elements= Unsur::orderBy('label_order', 'asc')->paginate(15);
         } else {
             abort(403, 'Tidak diizinkan Menagkses halaman ini.');
         }

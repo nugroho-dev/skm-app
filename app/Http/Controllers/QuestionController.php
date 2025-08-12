@@ -13,7 +13,7 @@ class QuestionController extends Controller
     {
         $unsurs = Unsur::with(['questions.choices'=> function($q) {
             $q->orderBy('score', 'asc');
-        }])->get();
+        }])->orderBy('label_order', 'asc')->get();
         $title = 'Daftar Pertanyaan';
         return view('dashboard.questioner.question.index', compact('unsurs', 'title'));
     }

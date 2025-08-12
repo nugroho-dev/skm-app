@@ -11,6 +11,7 @@ use App\Http\Controllers\EducationController;
 use App\Http\Controllers\OccupationController;
 use App\Http\Controllers\ElementController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\ReportController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use App\Models\Occupation;
@@ -85,6 +86,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
             'update' => 'unsur.update',
             'destroy' => 'unsur.destroy',
         ]);
+        Route::get('/laporan-skm', [ReportController::class, 'index'])->name('reports.index');
     });
 
     // Admin Instansi routes
