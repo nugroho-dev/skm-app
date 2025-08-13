@@ -22,18 +22,83 @@ class ReportController extends Controller
     $query = Respondent::with([
         'service',
         'answers.question.unsur',
-        'institution'
+        'institution',
+        'institution.mpp', 'institution.group'
     ]);
+    $currentMonth = now()->month;
+    $currentYear = now()->year;
+    // === LOGIKA PRIORITAS FILTER ===
+    if ($request->filled('start_date') && $request->filled('end_date')) {
+        // 1. Rentang tanggal
+        $start = Carbon::parse($request->start_date)->startOfDay();
+        $end = Carbon::parse($request->end_date)->endOfDay();
+        $query->whereBetween('created_at', [$start, $end]);
 
-    // Filter periode (bulan/tahun)
-    if ($request->filled('month') && $request->filled('year')) {
+    } elseif ($request->filled('quarter') && $request->filled('year')) {
+        // 2. Triwulan
+        $startMonth = ($request->quarter - 1) * 3 + 1;
+        $endMonth = $startMonth + 2;
+        $query->whereYear('created_at', $request->year)
+              ->whereMonth('created_at', '>=', $startMonth)
+              ->whereMonth('created_at', '<=', $endMonth);
+
+    } elseif ($request->filled('semester') && $request->filled('year')) {
+        // 3. Semester
+        if ($request->semester == 1) {
+            $query->whereYear('created_at', $request->year)
+                  ->whereBetween('created_at', [
+                      Carbon::createFromDate($request->year, 1, 1),
+                      Carbon::createFromDate($request->year, 6, 30)
+                  ]);
+        } elseif ($request->semester == 2) {
+            $query->whereYear('created_at', $request->year)
+                  ->whereBetween('created_at', [
+                      Carbon::createFromDate($request->year, 7, 1),
+                      Carbon::createFromDate($request->year, 12, 31)
+                  ]);
+        }
+
+    } elseif ($request->filled('month') && $request->filled('year')) {
+        // 4. Bulan & Tahun
         $query->whereMonth('created_at', $request->month)
               ->whereYear('created_at', $request->year);
-    }
 
+    } elseif ($request->filled('year')) {
+        // 5. Hanya Tahun
+        $query->whereYear('created_at', $request->year);
+
+    } else {
+        // === DEFAULT (Bulan & Tahun sekarang) ===
+        $query->whereMonth('created_at', $currentMonth)
+              ->whereYear('created_at', $currentYear);
+        $request->merge([
+            'month' => $currentMonth,
+            'year' => $currentYear
+        ]);
+    }
+    // === AKHIR LOGIKA PRIORITAS FILTER ===
     // Filter instansi
     if ($request->filled('institution_id')) {
-        $query->where('institution_id', $request->institution_id);
+        if ($request->institution_id === 'mpp_ikm') {
+            // Semua instansi yang tergabung dalam MPP
+            $mppIds = Institution::whereHas('mpp', function ($q) {
+                $q->where('slug', 'mpp-kota-magelang');
+            })->pluck('id');
+
+            $query->whereIn('institution_id', $mppIds);
+
+        } elseif ($request->institution_id === 'kota_ikm') {
+            // Semua instansi yang menginduk pada Kota Magelang
+            $kotaIds = Institution::whereHas('group', function ($q) {
+                $q->where('slug', 'kota-magelang');
+            })->pluck('id');
+
+            $query->whereIn('institution_id', $kotaIds);
+
+        } else {
+            // Satu instansi spesifik
+            $query->where('institution_id', $request->institution_id);
+        }
     }
     $respondents = $query->orderBy('created_at')->get();
     $respondentScores = [];
@@ -66,8 +131,20 @@ class ReportController extends Controller
         $totalBobot += $weighted;
     }
     $nilaiSKM = $totalBobot * 25;
+    // Tentukan kategori mutu layanan
+    if ($nilaiSKM >= 88.31) {
+        $kategoriMutu = ['A', 'Sangat Baik'];
+    } elseif ($nilaiSKM >= 76.61) {
+        $kategoriMutu = ['B', 'Baik'];
+    } elseif ($nilaiSKM >= 65.00) {
+        $kategoriMutu = ['C', 'Kurang Baik'];
+    } else {
+        $kategoriMutu = ['D', 'Tidak Baik'];
+    }
     // Data untuk dropdown filter
-    $institutions = Institution::orderBy('name')->get();
+    $institutions = Institution::with(['mpp', 'group'])
+        ->orderBy('name')
+        ->get();
     $months = collect(range(1, 12))->mapWithKeys(function ($m) {
         return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
     });
@@ -75,8 +152,18 @@ class ReportController extends Controller
                 ->distinct()
                 ->orderBy('year', 'desc')
                 ->pluck('year', 'year');
+     $quarters = [
+        1 => 'Triwulan 1 (Jan–Mar)',
+        2 => 'Triwulan 2 (Apr–Jun)',
+        3 => 'Triwulan 3 (Jul–Sep)',
+        4 => 'Triwulan 4 (Okt–Des)'
+    ];
+    $semesters = [
+        1 => 'Semester 1 (Jan–Jun)',
+        2 => 'Semester 2 (Jul–Des)'
+    ];
 
-    return view('dashboard.reports.index', compact('respondents', 'unsurs', 'institutions', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM'));
+    return view('dashboard.reports.index', compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu'));
     }
     // Ambil daftar unsur (supaya kolom tabel dinamis sesuai unsur yang ada)
        
