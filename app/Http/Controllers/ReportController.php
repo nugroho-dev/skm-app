@@ -86,6 +86,7 @@ class ReportController extends Controller
             })->pluck('id');
 
             $query->whereIn('institution_id', $mppIds);
+            $selectedInstitution = 'IKM MPP Kota Magelang';
 
         } elseif ($request->institution_id === 'kota_ikm') {
             // Semua instansi yang menginduk pada Kota Magelang
@@ -94,11 +95,15 @@ class ReportController extends Controller
             })->pluck('id');
 
             $query->whereIn('institution_id', $kotaIds);
+            $selectedInstitution = 'IKM Kota Magelang';
 
         } else {
             // Satu instansi spesifik
             $query->where('institution_id', $request->institution_id);
+            $selectedInstitution = Institution::find($request->institution_id)?->name;
         }
+    } else {
+        $selectedInstitution = null;
     }
     $respondents = $query->orderBy('created_at')->get();
     $respondentScores = [];
@@ -163,7 +168,7 @@ class ReportController extends Controller
         2 => 'Semester 2 (Jul–Des)'
     ];
 
-    return view('dashboard.reports.index', compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu'));
+    return view('dashboard.reports.index', compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu','selectedInstitution'));
     }
     // Ambil daftar unsur (supaya kolom tabel dinamis sesuai unsur yang ada)
        

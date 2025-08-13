@@ -47,7 +47,7 @@
         LAPORAN HASIL SURVEI KEPUASAN MASYARAKAT
     </h2>
     <h3 style="margin: 0; font-size: 18px;">
-        {{ $selectedInstitution ? $selectedInstitution->name : 'Semua Instansi' }}
+        {{ $selectedInstitution ? $selectedInstitution : 'Semua Instansi' }}
     </h3>
     <p style="margin: 0; font-size: 14px;">
         Periode:
@@ -65,7 +65,7 @@
             {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}
         @endif
     </p>
-    <hr style="margin-top: 10px; border: 1px solid #000;">
+    
 </div>
                 {{-- Tabel Laporan --}}
                 <div class="table-responsive" >
@@ -107,6 +107,7 @@
                                     <td colspan="{{ 7 + $unsurs->count() }}" class="text-center">
                                         Tidak ada data
                                     </td>
+                                    <td
                                 </tr>
                             @endforelse
                         </tbody>
