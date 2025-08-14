@@ -87,6 +87,8 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
             'destroy' => 'unsur.destroy',
         ]);
         Route::get('/laporan-skm', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/laporan-ikm/pdf', [ReportController::class, 'cetakPdf'])->name('ikm.cetak.pdf');
+        Route::get('/laporan-ikm/publikasi/cetakPublikasiPdf', [ReportController::class, 'cetakPublikasiPdf'])->name('ikm.cetak.publikasi.pdf');
     });
 
     // Admin Instansi routes

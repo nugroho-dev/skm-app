@@ -17,12 +17,13 @@
               <div class="col-auto ms-auto d-print-none">
                 <div class="d-flex btn-list">
                   <a href="{{  route('questioner.index') }}" class="btn btn-secondary"> <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-back-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 14l-4 -4l4 -4" /><path d="M5 10h11a4 4 0 1 1 0 8h-1" /></svg> Kembali</a>
-                  <div class="no-print mb-3 d-flex gap-2">
-                    <button onclick="printTable('tabel-ikm')" class="btn btn-primary btn-sm">
-                        <i class="bi bi-printer"></i> Print Browser
-                    </button>
-                  </div>
-                  <a href="" class="btn btn-danger">
+                 
+                 <button onclick="printTable('tabel-ikm')" class="btn btn-dark ">
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-printer"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" /><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" /><path d="M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z" /></svg></i> Print Browser
+                 </button>
+                  <a href="{{ route('ikm.cetak.publikasi.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak Publikasi PDF</a>
+                  <a href="{{ route('ikm.cetak.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak PDF</a>
                    {{-- Form Filter --}}
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 3h-16a1 1 0 0 0 -1 1v2.227l.008 .223a3 3 0 0 0 .772 1.795l4.22 4.641v8.114a1 1 0 0 0 1.316 .949l6 -2l.108 -.043a1 1 0 0 0 .576 -.906v-6.586l4.121 -4.12a3 3 0 0 0 .879 -2.123v-2.171a1 1 0 0 0 -1 -1z" /></svg> Filter Laporan</button>
@@ -42,31 +43,30 @@
             </div>
             <div class="card-body" id="tabel-ikm">
                
-<div style="text-align: center; margin-bottom: 20px;">
-    <h2 style="margin: 0; font-size: 20px; text-transform: uppercase;">
-        LAPORAN HASIL SURVEI KEPUASAN MASYARAKAT
-    </h2>
-    <h3 style="margin: 0; font-size: 18px;">
-        {{ $selectedInstitution ? $selectedInstitution : 'Semua Instansi' }}
-    </h3>
-    <p style="margin: 0; font-size: 14px;">
-        Periode:
-        @if(request('quarter'))
-            Triwulan {{ request('quarter') }} {{ request('year') }}
-        @elseif(request('semester'))
-            Semester {{ request('semester') }} {{ request('year') }}
-        @elseif(request('month') && request('year'))
-            {{ \Carbon\Carbon::createFromDate(request('year'), request('month'), 1)->translatedFormat('F Y') }}
-        @elseif(request('start_date') && request('end_date'))
-            {{ \Carbon\Carbon::parse(request('start_date'))->translatedFormat('d F Y') }}
-            s/d
-            {{ \Carbon\Carbon::parse(request('end_date'))->translatedFormat('d F Y') }}
-        @else
-            {{ \Carbon\Carbon::now()->translatedFormat('F Y') }}
-        @endif
-    </p>
-    
-</div>
+                <div class="text-center mb-4 ">
+                    <h2 class="h2 text-uppercase m-0">
+                        LAPORAN HASIL SURVEI KEPUASAN MASYARAKAT <br>
+                     
+                        {{ $selectedInstitution ? $selectedInstitution : 'Semua Instansi' }}
+                    </h2>
+                    <h3 class="h3 text-uppercase m-0">
+                        Periode:
+                        @if(request('quarter'))
+                            Triwulan {{ request('quarter') }} Tahun {{ request('year') }}
+                        @elseif(request('semester'))
+                            Semester {{ request('semester') }} tahun {{ request('year') }}
+                        @elseif(request('month') && request('year'))
+                            {{ \Carbon\Carbon::createFromDate(request('year'), request('month'), 1)->locale('id')->translatedFormat('F Y') }}
+                        @elseif(request('start_date') && request('end_date'))
+                            {{ \Carbon\Carbon::parse(request('start_date'))->locale('id')->translatedFormat('d F Y') }}
+                            s/d
+                            {{ \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y') }}
+                        @else
+                            {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y') }}
+                        @endif
+                    </h3>
+                    
+                </div>
                 {{-- Tabel Laporan --}}
                 <div class="table-responsive" >
                     <table class="table table-bordered table-striped">
@@ -107,7 +107,7 @@
                                     <td colspan="{{ 7 + $unsurs->count() }}" class="text-center">
                                         Tidak ada data
                                     </td>
-                                    <td
+                                    <td></td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -167,6 +167,41 @@
                     </table>
                 </div>
                 <div class="row mt-3">
+                    <div class="tabler-responsive col-md-6 col-sm-12">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Unsur</th>
+                                    <th>Nilai Rata Rata</th>
+                                    <th>Mutu Pelayanan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($unsurs as $i => $unsur)
+                                    <tr>
+                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $unsur->name }}</td>
+                                        <td class="text-center">{{ number_format($averagePerUnsur[$unsur->id] ?? 0, 2) }}</td>
+                                        <td class="text-center">
+                                            @if(isset($averagePerUnsur[$unsur->id]))
+                                                @if($averagePerUnsur[$unsur->id] >= 3.53)
+                                                    (A) Sangat Baik
+                                                @elseif($averagePerUnsur[$unsur->id] >= 3.06)
+                                                    (B) Baik
+                                                @elseif($averagePerUnsur[$unsur->id] >= 2.60)
+                                                    (C) Kurang Baik
+                                                @else
+                                                    (D) Tidak Baik
+                                                @endif
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                        </table>
+                    </div>
                     <div class="col-md-6 col-sm-12">
                         <div class="tabler-responsive col-md-12 col-sm-12">
                             <table class="table table-bordered table-striped">
@@ -254,41 +289,7 @@
                             </table>
                         </div>
                     </div>
-                    <div class="tabler-responsive col-md-6 col-sm-12">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Unsur</th>
-                                    <th>Nilai Rata Rata</th>
-                                    <th>Mutu Pelayanan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($unsurs as $i => $unsur)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $unsur->name }}</td>
-                                        <td class="text-center">{{ number_format($averagePerUnsur[$unsur->id] ?? 0, 2) }}</td>
-                                        <td class="text-center">
-                                            @if(isset($averagePerUnsur[$unsur->id]))
-                                                @if($averagePerUnsur[$unsur->id] >= 3.53)
-                                                    (A) Sangat Baik
-                                                @elseif($averagePerUnsur[$unsur->id] >= 3.06)
-                                                    (B) Baik
-                                                @elseif($averagePerUnsur[$unsur->id] >= 2.60)
-                                                    (C) Kurang Baik
-                                                @else
-                                                    (D) Tidak Baik
-                                                @endif
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                        </table>
-                    </div>
+                    
                     
                 </div>
             </div>
