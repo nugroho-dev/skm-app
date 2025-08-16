@@ -160,14 +160,14 @@ class ReportController extends Controller
                     ->orderBy('year', 'desc')
                     ->pluck('year', 'year');
         $quarters = [
-            1 => 'Triwulan 1 (Jan–Mar)',
-            2 => 'Triwulan 2 (Apr–Jun)',
-            3 => 'Triwulan 3 (Jul–Sep)',
-            4 => 'Triwulan 4 (Okt–Des)'
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
         ];
         $semesters = [
-            1 => 'Semester 1 (Jan–Jun)',
-            2 => 'Semester 2 (Jul–Des)'
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
         ];
 
         return view('dashboard.reports.index', compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu','selectedInstitution'));
@@ -333,14 +333,14 @@ class ReportController extends Controller
                     ->orderBy('year', 'desc')
                     ->pluck('year', 'year');
         $quarters = [
-            1 => 'Triwulan 1 (Jan–Mar)',
-            2 => 'Triwulan 2 (Apr–Jun)',
-            3 => 'Triwulan 3 (Jul–Sep)',
-            4 => 'Triwulan 4 (Okt–Des)'
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
         ];
         $semesters = [
-            1 => 'Semester 1 (Jan–Jun)',
-            2 => 'Semester 2 (Jul–Des)'
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
         ];
         // Hitung jumlah responden
         $totalRespondents = $respondents->count();
@@ -365,6 +365,4 @@ class ReportController extends Controller
 
         return $pdf->stream('laporan_ikm.pdf');
     }
-
-
 }
