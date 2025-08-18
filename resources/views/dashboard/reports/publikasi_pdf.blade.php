@@ -42,6 +42,18 @@
   }
   .stats-table th { background: #B4E50D; text-align: left; font-weight: bold; }
 
+.stats-table-edu { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+  .stats-table-edu th, .stats-table-edu td {
+    border: 0.3mm solid #e5e7eb; padding: 0mm 4mm; font-size: 10pt;
+  }
+  .stats-table-edu th { background: #B4E50D; text-align: left; font-weight: bold; }
+
+.stats-table-occu { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+  .stats-table-occu th, .stats-table-occu td {
+    border: 0.3mm solid #e5e7eb; padding: 0mm 4mm; font-size: 10pt;
+  }
+  .stats-table-occu th { background: #B4E50D; text-align: left; font-weight: bold; }
+
   .footer-note { text-align: center; font-size: 10pt; color: #6b7280; margin-top: 8mm; }
   .thanks { border: 0.3mm dashed #e5e7eb; padding: 3mm; text-align: center; font-weight: bold; font-size: 10pt; margin-top: 2mm; }
 </style>
@@ -87,24 +99,52 @@
             </td>
           </tr>
         </table>
-  <table class="stats-table">
+  
+  <table style="width: 100%;">
+    <tr>
+      <td style="vertical-align: top;">
+        <table class="stats-table-edu">
     <thead>
       <tr>
-        <th>Jenjang Pendidikan Responden</th>
-        <th style="width:25mm">Jumlah</th>
+        <th>Pendidikan Responden</th>
+        <th style="width:18mm">Jumlah</th>
       </tr>
     </thead>
     <tbody>
       @forelse($educationCounts as $id => $count)
         <tr>
           <td>{{ $educationNames[$id] ?? 'Tidak Diketahui' }}</td>
-          <td><strong>{{ $count }} Orang</strong></td>
+          <td><strong>{{ $count }} </strong></td>
         </tr>
       @empty
         <tr><td colspan="2" style="color:#6b7280">Belum ada data.</td></tr>
       @endforelse
     </tbody>
   </table>
+      </td>
+      <td style="vertical-align: top;">
+        <table class="stats-table-occu">
+    <thead>
+      <tr>
+        <th>Pekerjaan Responden</th>
+        <th style="width:18mm">Jumlah</th>
+      </tr>
+    </thead>
+    <tbody>
+      @forelse($occupationCounts as $id => $count)
+        <tr>
+          <td>{{ $occupationNames[$id] ?? 'Tidak Diketahui' }}</td>
+          <td><strong>{{ $count }} </strong></td>
+        </tr>
+      @empty
+        <tr><td colspan="2" style="color:#6b7280">Belum ada data.</td></tr>
+      @endforelse
+    </tbody>
+  </table>
+      </td>
+    </tr>
+  </table>
+  
 
   <div class="footer-note">Terima kasih atas partisipasi Anda.</div>
   <div class="thanks">

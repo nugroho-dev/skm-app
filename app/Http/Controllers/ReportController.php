@@ -7,6 +7,7 @@ use App\Models\Response;
 use App\Models\Answer;
 use App\Models\Institution;
 use App\Models\Education;
+use App\Models\Occupation;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\Response as Respondent;
@@ -350,9 +351,15 @@ class ReportController extends Controller
         // Hitung jumlah per tingkat pendidikan
         $educationCounts = $respondents->groupBy('education_id')->map->count();
 
+        // Hitung jumlah perkerjaan
+        $occupationCounts = $respondents->groupBy('occupation_id')->map->count();
+
         // Ambil nama pendidikan (jika relasi ada)
         $educationNames = Education::whereIn('id', $educationCounts->keys())->pluck('level', 'id');
-        return compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu','selectedInstitution','totalRespondents', 'genderCounts', 'educationCounts', 'educationNames');
+        // Ambil nama pekerjaan (jika relasi ada)
+        $occupationNames = Occupation::whereIn('id', $occupationCounts->keys())->pluck('type', 'id');
+
+        return compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu','selectedInstitution','totalRespondents', 'genderCounts', 'educationCounts', 'educationNames','occupationCounts', 'occupationNames');
 
     }
     public function cetakPublikasiPdf(Request $request)
