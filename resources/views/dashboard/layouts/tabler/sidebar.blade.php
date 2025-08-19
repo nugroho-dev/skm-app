@@ -97,14 +97,33 @@
         <!-- BEGIN NAVBAR MENU -->
         <ul class="navbar-nav pt-lg-3">
            @foreach ($menus as $menu)
-          <li class="nav-item">
-            <a class="nav-link" href="{{ $menu['url'] }}">
-              <span class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler.io/icons/icon/home --> 
-              {!! $menu['icon'] !!}
-              </span>
-              <span class="nav-link-title"> {{ $menu['label'] }} </span>
-            </a>
-          </li>
+              @if(isset($menu['children']))
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler.io/icons/icon/home --> 
+                  {!! $menu['icon'] !!}
+                  </span>
+                  <span class="nav-link-title"> {{ $menu['label'] }} </span>
+                </a>
+                <ul class="dropdown-menu">
+                  @foreach ($menu['children'] as $child)
+                    <li>
+                      <a class="dropdown-item" href="{{ $child['url'] }}">
+                        {{ $child['label'] }}
+                      </a>
+                    </li>
+                  @endforeach
+                </ul>
+              @else
+              <li class="nav-item">
+                <a class="nav-link" href="{{ $menu['url'] }}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler.io/icons/icon/home --> 
+                  {!! $menu['icon'] !!}
+                  </span>
+                  <span class="nav-link-title"> {{ $menu['label'] }} </span>
+                </a>
+              </li>
+              @endif
           @endforeach
           
         </ul>

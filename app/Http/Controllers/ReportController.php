@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Response;
-use App\Models\Answer;
 use App\Models\Institution;
 use App\Models\Education;
 use App\Models\Occupation;

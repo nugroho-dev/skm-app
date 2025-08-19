@@ -12,6 +12,7 @@ use App\Http\Controllers\OccupationController;
 use App\Http\Controllers\ElementController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportServiceController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use App\Models\Occupation;
@@ -89,6 +90,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/laporan-skm', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/laporan-ikm/pdf', [ReportController::class, 'cetakPdf'])->name('ikm.cetak.pdf');
         Route::get('/laporan-ikm/publikasi/cetakPublikasiPdf', [ReportController::class, 'cetakPublikasiPdf'])->name('ikm.cetak.publikasi.pdf');
+        Route::get('/reports/per-layanan', [ReportServiceController::class, 'index'])->name('reports.per_layanan');
     });
 
     // Admin Instansi routes

@@ -46,7 +46,7 @@
                
                 <div class="text-center mb-4 ">
                     <h2 class="h2 text-uppercase m-0">
-                        LAPORAN HASIL SURVEI KEPUASAN MASYARAKAT <br>
+                        LAPORAN HASIL SURVEI KEPUASAN MASYARAKAT PER JENIS LAYANAN <br>
                      
                         {{ $selectedInstitution ? $selectedInstitution : 'Semua Instansi' }}
                     </h2>
@@ -73,226 +73,36 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>Waktu Survei</th>
-                                <th>Umur</th>
-                                <th>Pendidikan</th>
-                                <th>Pekerjaan</th>
-                                <th>Instansi</th>
                                 <th>Jenis Layanan</th>
-                                @foreach($unsurs as $unsur)
-                                    <th class="text-center">U{{ $unsur->label_order }}</th>
-                                @endforeach
-                                <th>Nilai SKM</th>
+                                <th>Jumlah Responden</th>
+                                <th>Nilai IKM</th>
+                                <th>Mutu Layanan</th>
+                               
+                                
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($respondents as $i => $res)
+                             @forelse($reportPerService as $report)
                                 <tr>
-                                    <td>{{ $i+1 }}</td>
-                                    <td> {{ $res->created_at->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
-                                    <td>{{ $res->age }}</td>
-                                    <td>{{ $res->education->level ?? '-' }}</td>
-                                    <td>{{ $res->occupation->type ?? '-' }}</td>
-                                    <td>{{ $res->institution->name ?? '-' }}</td>
-                                    <td>{{ $res->service->name ?? '-' }}</td>
-                                    @foreach($unsurs as $unsur)
-                                        <td class="text-center">
-                                            {{ $respondentScores[$res->id][$unsur->id] ?? 0 }}
-                                        </td>
-                                    @endforeach
-                                    <td></td>
+                                   <td>{{ $report['service']->name }}</td>
+                                   <td>{{ $report['respondents_count'] }}</td>
+                                   <td>{{ number_format($report['nilaiSKM'],2) }}</td>
+                                   <td>{{ $report['kategoriMutu'][0] }} ({{ $report['kategoriMutu'][1] }})</td>
+                                   
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ 7 + $unsurs->count() }}" class="text-center">
+                                    <td colspan="5" class="text-center">
                                         Tidak ada data
                                     </td>
-                                    <td></td>
+                                  
                                 </tr>
                             @endforelse
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="7" class="text-end"> Jumlah Nilai Per Unsur </th>
-                                @foreach($unsurs as $unsur)
-                                <th class="text-center">{{ $totalPerUnsur[$unsur->id] ?? 0 }}</th>
-                                @endforeach
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <th colspan="7" class="text-end">Nilai Rata Rata Per Unsur </th>
-                                @foreach($unsurs as $unsur)
-                                <th class="text-center">{{ number_format($averagePerUnsur[$unsur->id] ?? 0, 2) }}</th>
-                                @endforeach
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <th colspan="7" class="text-end">Mutu Pelayanan </th>
-                                @foreach($unsurs as $unsur)
-                                <th class="text-center">
-                                    @if(isset($averagePerUnsur[$unsur->id]))
-                                                @if($averagePerUnsur[$unsur->id] >= 3.53)
-                                                    A
-                                                @elseif($averagePerUnsur[$unsur->id] >= 3.06)
-                                                    B
-                                                @elseif($averagePerUnsur[$unsur->id] >= 2.60)
-                                                    C
-                                                @else
-                                                    D
-                                                @endif
-                                            @else
-                                                -
-                                            @endif
-                                </th>
-                                @endforeach
-                            
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <th colspan="7" class="text-end">Nilai Rata Rata Tertimbang </th>
-                                @foreach($unsurs as $unsur)
-                                <th class="text-center">{{ number_format($weightedPerUnsur[$unsur->id] ?? 0, 3) }}</th>
-                                @endforeach
-                                <th class="text-center">*) {{ number_format($totalBobot, 3) }}</th>
-                            </tr>
-                            <tr>
-                                <th colspan="16" class="text-end"> IKM Unit Pelayanan </th>
-                                <th class="text-center">**) {{ number_format($nilaiSKM, 2) }}</th>
-                            </tr>
-                            <tr>
-                                <th colspan="16" class="text-end">Kategori Mutu Layanan</th>
-                                <th class="text-center text-nowrap">{{ $kategoriMutu[0] }} <br> ({{ $kategoriMutu[1] }})</th>
-                            </tr>
-                        </tfoot>
+                      
                     </table>
                 </div>
-                <div class="row mt-3">
-                    <div class="tabler-responsive col-md-6 col-sm-12">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Unsur</th>
-                                    <th>Nilai Rata Rata</th>
-                                    <th>Mutu Pelayanan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($unsurs as $i => $unsur)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $unsur->name }}</td>
-                                        <td class="text-center">{{ number_format($averagePerUnsur[$unsur->id] ?? 0, 2) }}</td>
-                                        <td class="text-center">
-                                            @if(isset($averagePerUnsur[$unsur->id]))
-                                                @if($averagePerUnsur[$unsur->id] >= 3.53)
-                                                    (A) Sangat Baik
-                                                @elseif($averagePerUnsur[$unsur->id] >= 3.06)
-                                                    (B) Baik
-                                                @elseif($averagePerUnsur[$unsur->id] >= 2.60)
-                                                    (C) Kurang Baik
-                                                @else
-                                                    (D) Tidak Baik
-                                                @endif
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                        </table>
-                    </div>
-                    <div class="col-md-6 col-sm-12">
-                        <div class="tabler-responsive col-md-12 col-sm-12">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Keterangan</th>
-                                        <th>:</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>U1 - U9</td>
-                                        <td>:</td>
-                                        <td>Unsur - Unsur Pelayanan</td>
-                                    </tr>
-                                    <tr>
-                                        <td>NRR</td>
-                                        <td>:</td>
-                                        <td>Nilai Rata Rata</td>
-                                    </tr>
-                                    <tr>
-                                        <td>IKM</td>
-                                        <td>:</td>
-                                        <td>Indeks Kepuasan Masyarakat</td>
-                                    </tr>
-                                    <tr>
-                                        <td>_*)</td>
-                                        <td>:</td>
-                                        <td>Jumlah NRR IKM Tertimbang</td>
-                                    </tr>
-                                    <tr>
-                                        <td>_**)</td>
-                                        <td>:</td>
-                                        <td>Jumlah NRR Tertimbang x 25</td>
-                                    </tr>
-                                    <tr>
-                                        <td>NRR Per Unsur</td>
-                                        <td>:</td>
-                                        <td>Jumlah Nilai Per Unsur dibagi Jumlah Kuesioner Yang Terisi</td>
-                                    </tr>
-                                    <tr>
-                                        <td>NRR Tertimbang</td>
-                                        <td>:</td>
-                                        <td>NRR per unsur x 0,111 per unsur</td>
-                                    </tr>
-                            </table>
-                        </div>
-                        <div class="tabler-responsive col-md-12 col-sm-12">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>IKM UNIT PELAYANAN</th>
-                                        <th>:</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Mutu Pelayanan</td>
-                                        <td>:</td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td>A (Sangat Baik)</td>
-                                        <td>:</td>
-                                        <td>88.31 - 100.00</td>
-                                    </tr>
-                                    <tr>
-                                        <td>B (Baik)</td>
-                                        <td>:</td>
-                                        <td>76.61 - 88.30</td>
-                                    </tr>
-                                    <tr>
-                                        <td>C (Kurang Baik)</td>
-                                        <td>:</td>
-                                        <td>65.00 - 76.60</td>
-                                    </tr>
-                                    <tr>
-                                        <td>D (Tidak Baik)</td>
-                                        <td>:</td>
-                                        <td>25.00 - 64.99</td>
-                                    </tr>
-                                    
-                            </table>
-                        </div>
-                    </div>
-                    
-                    
-                </div>
+               
             </div>
         </div>
     </div>
@@ -333,7 +143,7 @@ function printTable(tableId) {
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('reports.index') }}" method="GET">
+            <form action="{{ route('reports.per_layanan') }}" method="GET">
                 <div class="modal-header">
                     <h5 class="modal-title" id="filterModalLabel">Filter Laporan SKM</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -421,11 +231,12 @@ function printTable(tableId) {
                 </div>
 
                 <div class="modal-footer">
-                    <a href="{{ route('reports.index') }}" class="btn btn-secondary">Reset</a>
+                    <a href="{{ route('reports.per_layanan') }}" class="btn btn-secondary">Reset</a>
                     <button type="submit" class="btn btn-primary">Terapkan Filter</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 @endsection
