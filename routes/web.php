@@ -91,6 +91,9 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/laporan-ikm/pdf', [ReportController::class, 'cetakPdf'])->name('ikm.cetak.pdf');
         Route::get('/laporan-ikm/publikasi/cetakPublikasiPdf', [ReportController::class, 'cetakPublikasiPdf'])->name('ikm.cetak.publikasi.pdf');
         Route::get('/reports/per-layanan', [ReportServiceController::class, 'index'])->name('reports.per_layanan');
+        Route::get('/laporan/service', [ReportServiceController::class, 'reportPerService'])->name('laporan.service');
+        Route::get('/laporan-ikm/service/pdf', [ReportServiceController::class, 'cetakPdf'])->name('ikm.service.cetak.pdf');
+        Route::get('/laporan-ikm/service/publikasi/cetakPublikasiPdf', [ReportServiceController::class, 'cetakPublikasiPdf'])->name('ikm.service.cetak.publikasi.pdf');
     });
 
     // Admin Instansi routes

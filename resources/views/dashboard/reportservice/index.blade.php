@@ -22,10 +22,7 @@
                         <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-printer"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" /><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" /><path d="M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z" /></svg></i> Print Browser
                  </button>
                 
-                  <a href="{{ route('ikm.cetak.publikasi.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak Publikasi PDF</a>
-                  <a href="{{ route('ikm.cetak.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak PDF</a>
+                 
                    {{-- Form Filter --}}
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 3h-16a1 1 0 0 0 -1 1v2.227l.008 .223a3 3 0 0 0 .772 1.795l4.22 4.641v8.114a1 1 0 0 0 1.316 .949l6 -2l.108 -.043a1 1 0 0 0 .576 -.906v-6.586l4.121 -4.12a3 3 0 0 0 .879 -2.123v-2.171a1 1 0 0 0 -1 -1z" /></svg> Filter Laporan</button>
                 </div>
@@ -40,7 +37,7 @@
 </style>
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Laporan Responden & SKM</h3>
+                <h3 class="card-title">Laporan Rekap Per Jenis Layanan</h3>
             </div>
             <div class="card-body" id="tabel-ikm">
                
@@ -63,10 +60,9 @@
                             s/d
                             {{ \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y') }}
                         @else
-                            {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y') }}
+                            {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('Y') }}
                         @endif
                     </h3>
-                    
                 </div>
                 {{-- Tabel Laporan --}}
                 <div class="table-responsive" >
@@ -77,27 +73,23 @@
                                 <th>Jumlah Responden</th>
                                 <th>Nilai IKM</th>
                                 <th>Mutu Layanan</th>
-                               
-                                
                             </tr>
                         </thead>
                         <tbody>
                              @forelse($reportPerService as $report)
                                 <tr>
-                                   <td>{{ $report['service']->name }}</td>
+                                   <td><a href="{{ route('laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) }}">{{ $report['service']->name }}</a></td>
                                    <td>{{ $report['respondents_count'] }}</td>
                                    <td>{{ number_format($report['nilaiSKM'],2) }}</td>
                                    <td>{{ $report['kategoriMutu'][0] }} ({{ $report['kategoriMutu'][1] }})</td>
-                                   
                                 </tr>
-                            @empty
+                             @empty
                                 <tr>
                                     <td colspan="5" class="text-center">
                                         Tidak ada data
                                     </td>
-                                  
                                 </tr>
-                            @endforelse
+                             @endforelse
                         </tbody>
                       
                     </table>
