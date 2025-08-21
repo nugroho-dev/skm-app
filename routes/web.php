@@ -12,7 +12,9 @@ use App\Http\Controllers\OccupationController;
 use App\Http\Controllers\ElementController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportRespondentController;
 use App\Http\Controllers\ReportServiceController;
+use App\Http\Controllers\ReportGrafikController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use App\Models\Occupation;
@@ -94,6 +96,9 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/laporan/service', [ReportServiceController::class, 'reportPerService'])->name('laporan.service');
         Route::get('/laporan-ikm/service/pdf', [ReportServiceController::class, 'cetakPdf'])->name('ikm.service.cetak.pdf');
         Route::get('/laporan-ikm/service/publikasi/cetakPublikasiPdf', [ReportServiceController::class, 'cetakPublikasiPdf'])->name('ikm.service.cetak.publikasi.pdf');
+        Route::get('/laporan/responden', [ReportRespondentController::class, 'index'])->name('laporan.responden');
+        Route::get('/laporan/responden/pdf', [ReportRespondentController::class, 'cetakPdf'])->name('laporan.responden.cetak.pdf');
+        Route::get('/laporan/grafik', [ReportGrafikController::class, 'index'])->name('laporan.grafik');
     });
 
     // Admin Instansi routes

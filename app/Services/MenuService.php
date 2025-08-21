@@ -47,11 +47,11 @@ class MenuService
                                     ],
                                     [
                                     'label' => 'Jumlah Responden',
-                                    'url' => route('reports.index')
+                                    'url' => route('laporan.responden')
                                     ],
                                     [
                                     'label' => 'Grafik',
-                                    'url' => route('reports.index')
+                                    'url' => route('laporan.grafik')
                                     ]
                                 ]
                             ], 
