@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Institution;
 use App\Models\Education;
 use App\Models\Occupation;
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\Response as Respondent;
@@ -79,32 +80,39 @@ class ReportController extends Controller
         }
         // === AKHIR LOGIKA PRIORITAS FILTER ===
         // Filter instansi
-        if ($request->filled('institution_id')) {
-            if ($request->institution_id === 'mpp_ikm') {
-                // Semua instansi yang tergabung dalam MPP
-                $mppIds = Institution::whereHas('mpp', function ($q) {
-                    $q->where('slug', 'mpp-kota-magelang');
-                })->pluck('id');
+         if (Auth::user()->hasRole('super_admin')) {
+            if ($request->filled('institution_id')) {
+                if ($request->institution_id === 'mpp_ikm') {
+                    // Semua instansi yang tergabung dalam MPP
+                    $mppIds = Institution::whereHas('mpp', function ($q) {
+                        $q->where('slug', 'mpp-kota-magelang');
+                    })->pluck('id');
 
-                $query->whereIn('institution_id', $mppIds);
-                $selectedInstitution = 'MPP Kota Magelang';
+                    $query->whereIn('institution_id', $mppIds);
+                    $selectedInstitution = 'MPP Kota Magelang';
 
-            } elseif ($request->institution_id === 'kota_ikm') {
-                // Semua instansi yang menginduk pada Kota Magelang
-                $kotaIds = Institution::whereHas('group', function ($q) {
-                    $q->where('slug', 'kota-magelang');
-                })->pluck('id');
+                } elseif ($request->institution_id === 'kota_ikm') {
+                    // Semua instansi yang menginduk pada Kota Magelang
+                    $kotaIds = Institution::whereHas('group', function ($q) {
+                        $q->where('slug', 'kota-magelang');
+                    })->pluck('id');
 
-                $query->whereIn('institution_id', $kotaIds);
-                $selectedInstitution = 'Kota Magelang';
+                    $query->whereIn('institution_id', $kotaIds);
+                    $selectedInstitution = 'Kota Magelang';
 
+                } else {
+                    // Satu instansi spesifik
+                    $query->where('institution_id', $request->institution_id);
+                    $selectedInstitution = Institution::find($request->institution_id)?->name;
+                }
             } else {
-                // Satu instansi spesifik
-                $query->where('institution_id', $request->institution_id);
-                $selectedInstitution = Institution::find($request->institution_id)?->name;
+                $selectedInstitution = null;
             }
-        } else {
-            $selectedInstitution = null;
+        } elseif (Auth::user()->hasRole('admin_instansi')) {
+            $user = Auth::user();
+            $institution = $user->institution;
+            $query->where('institution_id', $institution->id);
+            $selectedInstitution = Institution::find($institution->id)?->name;
         }
         $respondents = $query->orderBy('created_at')->get();
         $respondentScores = [];
@@ -148,9 +156,15 @@ class ReportController extends Controller
             $kategoriMutu = ['D', 'Tidak Baik'];
         }
         // Data untuk dropdown filter
-        $institutions = Institution::with(['mpp', 'group'])
-            ->orderBy('name')
-            ->get();
+         if (Auth::user()->hasRole('super_admin')) {
+            $institutions = Institution::with(['mpp', 'group'])
+                ->orderBy('name')
+                ->get();
+         } else {
+            // Admin instansi: tidak ada pilihan instansi
+            $institutions = collect(); // kosongkan supaya tidak error di blade
+        }
+
         $months = collect(range(1, 12))->mapWithKeys(function ($m) {
             return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
         });
@@ -252,6 +266,7 @@ class ReportController extends Controller
         }
         // === AKHIR LOGIKA PRIORITAS FILTER ===
         // Filter instansi
+        if (Auth::user()->hasRole('super_admin')) {
         if ($request->filled('institution_id')) {
             if ($request->institution_id === 'mpp_ikm') {
                 // Semua instansi yang tergabung dalam MPP
@@ -278,6 +293,12 @@ class ReportController extends Controller
             }
         } else {
             $selectedInstitution = null;
+        }
+        } elseif (Auth::user()->hasRole('admin_instansi')) {
+            $user = Auth::user();
+            $institution = $user->institution;
+            $query->where('institution_id', $institution->id);
+            $selectedInstitution = Institution::find($institution->id)?->name;
         }
         $respondents = $query->orderBy('created_at')->get();
         $respondentScores = [];

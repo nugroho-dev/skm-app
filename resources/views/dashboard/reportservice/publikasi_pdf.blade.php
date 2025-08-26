@@ -11,7 +11,7 @@
           " s/d " .
           \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y');
   } else {
-      $periodeText = \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y');
+      $periodeText = "Tahun". \Carbon\Carbon::now()->locale('id')->translatedFormat('Y');
   }
 @endphp
 

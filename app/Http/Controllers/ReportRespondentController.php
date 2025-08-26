@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\Institution;
 use App\Models\Education;
 use App\Models\Occupation;
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\Response as Respondent;
@@ -79,6 +80,7 @@ class ReportRespondentController extends Controller
         }
         // === AKHIR LOGIKA PRIORITAS FILTER ===
         // Filter instansi
+        if (Auth::user()->hasRole('super_admin')) {
         if ($request->filled('institution_id')) {
             if ($request->institution_id === 'mpp_ikm') {
                 // Semua instansi yang tergabung dalam MPP
@@ -106,12 +108,23 @@ class ReportRespondentController extends Controller
         } else {
             $selectedInstitution = null;
         }
+        } elseif (Auth::user()->hasRole('admin_instansi')) {
+            $user = Auth::user();
+            $institution = $user->institution;
+            $query->where('institution_id', $institution->id);
+            $selectedInstitution = Institution::find($institution->id)?->name;
+        }
         $respondents = $query->orderBy('created_at')->get();
         
         // Data untuk dropdown filter
+         if (Auth::user()->hasRole('super_admin')) {
         $institutions = Institution::with(['mpp', 'group'])
             ->orderBy('name')
             ->get();
+          } else {
+            // Admin instansi: tidak ada pilihan instansi
+            $institutions = collect(); // kosongkan supaya tidak error di blade
+        }
         $months = collect(range(1, 12))->mapWithKeys(function ($m) {
             return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
         });
@@ -214,6 +227,7 @@ class ReportRespondentController extends Controller
         }
         // === AKHIR LOGIKA PRIORITAS FILTER ===
         // Filter instansi
+        if (Auth::user()->hasRole('super_admin')) {
         if ($request->filled('institution_id')) {
             if ($request->institution_id === 'mpp_ikm') {
                 // Semua instansi yang tergabung dalam MPP
@@ -240,6 +254,12 @@ class ReportRespondentController extends Controller
             }
         } else {
             $selectedInstitution = null;
+        }
+        } elseif (Auth::user()->hasRole('admin_instansi')) {
+            $user = Auth::user();
+            $institution = $user->institution;
+            $query->where('institution_id', $institution->id);
+            $selectedInstitution = Institution::find($institution->id)?->name;
         }
         $respondents = $query->orderBy('created_at')->get();
         

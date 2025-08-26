@@ -117,5 +117,15 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
             $title = 'Profil Pengguna';
             return view('dashboard.profile.index', compact('title'));
         })->name('instansi.profile.show');
+        Route::get('/instansi/laporan-skm', [ReportController::class, 'index'])->name('instansi.reports.index');
+        Route::get('/instansi/laporan-ikm/pdf', [ReportController::class, 'cetakPdf'])->name('instansi.ikm.cetak.pdf');
+        Route::get('/instansi/laporan-ikm/publikasi/cetakPublikasiPdf', [ReportController::class, 'cetakPublikasiPdf'])->name('instansi.ikm.cetak.publikasi.pdf');
+        Route::get('/instansi/reports/per-layanan', [ReportServiceController::class, 'index'])->name('instansi.reports.per_layanan');
+        Route::get('/instansi/laporan/service', [ReportServiceController::class, 'reportPerService'])->name('instansi.laporan.service');
+        Route::get('/instansi/laporan-ikm/service/pdf', [ReportServiceController::class, 'cetakPdf'])->name('instansi.ikm.service.cetak.pdf');
+        Route::get('/instansi/laporan-ikm/service/publikasi/cetakPublikasiPdf', [ReportServiceController::class, 'cetakPublikasiPdf'])->name('instansi.ikm.service.cetak.publikasi.pdf');
+        Route::get('/instansi/laporan/responden', [ReportRespondentController::class, 'index'])->name('instansi.laporan.responden');
+        Route::get('/instansi/laporan/responden/pdf', [ReportRespondentController::class, 'cetakPdf'])->name('instansi.laporan.responden.cetak.pdf');
+        Route::get('/instansi/laporan/grafik', [ReportGrafikController::class, 'index'])->name('instansi.laporan.grafik');
     });
 });

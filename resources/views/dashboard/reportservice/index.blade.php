@@ -59,7 +59,7 @@
                             s/d
                             {{ \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y') }}
                         @else
-                            {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('Y') }}
+                            Tahun {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('Y') }}
                         @endif
                     </h3>
                 </div>
@@ -77,7 +77,7 @@
                         <tbody>
                              @forelse($reportPerService as $report)
                                 <tr>
-                                   <td><a href="{{ route('laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) }}">{{ $report['service']->name }}</a></td>
+                                   <td><a href="{{ auth()->user()->hasRole('super_admin') ? route('laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) : route('instansi.laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) }}">{{ $report['service']->name }}</a></td>
                                    <td>{{ $report['respondents_count'] }}</td>
                                    <td>{{ number_format($report['nilaiSKM'],2) }}</td>
                                    <td>{{ $report['kategoriMutu'][0] }} ({{ $report['kategoriMutu'][1] }})</td>
@@ -134,7 +134,7 @@ function printTable(tableId) {
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('reports.per_layanan') }}" method="GET">
+            <form action="{{ auth()->user()->hasRole('super_admin') ? route('reports.per_layanan') : route('instansi.reports.per_layanan') }}" method="GET">
                 <div class="modal-header">
                     <h5 class="modal-title" id="filterModalLabel">Filter Laporan SKM</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -203,7 +203,7 @@ function printTable(tableId) {
                                 @endforeach
                             </select>
                         </div>
-
+                        @if($institutions->isNotEmpty())
                         <!-- Filter Instansi -->
                         <div class="col-md-12">
                             <label class="form-label">Instansi</label>
@@ -218,6 +218,7 @@ function printTable(tableId) {
                                 @endforeach
                             </select>
                         </div>
+                        @endif
                     </div>
                 </div>
 

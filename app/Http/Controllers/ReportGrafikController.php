@@ -6,6 +6,7 @@ use App\Models\Response as Respondent;
 use App\Models\Institution;
 use App\Models\Unsur;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -24,6 +25,7 @@ class ReportGrafikController extends Controller
     $baseQuery = Respondent::query();
 
     // === FILTER INSTANSI ===
+     if (Auth::user()->hasRole('super_admin')) {
     if ($request->filled('institution_id')) {
         if ($request->institution_id === 'mpp_ikm') {
             $mppIds = Institution::whereHas('mpp', function ($q) {
@@ -44,6 +46,12 @@ class ReportGrafikController extends Controller
     } else {
         $selectedInstitution = null;
     }
+        } elseif (Auth::user()->hasRole('admin_instansi')) {
+            $user = Auth::user();
+            $institution = $user->institution;
+            $baseQuery->where('institution_id', $institution->id);
+            $selectedInstitution = Institution::find($institution->id)?->name;
+        }
 
     // === Ambil responden per tahun terpilih ===
     $respondentsYear = (clone $baseQuery)
@@ -133,10 +141,14 @@ class ReportGrafikController extends Controller
         ->orderBy('y')
         ->pluck('y');
     // Data untuk dropdown filter
+    if (Auth::user()->hasRole('super_admin')) {
     $institutions = Institution::with(['mpp', 'group'])
         ->orderBy('name')
         ->get();
-
+ } else {
+            // Admin instansi: tidak ada pilihan instansi
+            $institutions = collect(); // kosongkan supaya tidak error di blade
+        }
         return view('dashboard.reportgrafik.index', compact(
         'title','ikmBulanan','ikmTriwulan','ikmSemester','ikmTahunan', 'selectedYear','years','selectedInstitution','institutions'
         ));

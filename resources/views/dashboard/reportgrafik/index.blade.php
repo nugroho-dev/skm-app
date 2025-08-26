@@ -149,7 +149,7 @@
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('laporan.grafik') }}" method="GET">
+            <form action="{{ auth()->user()->hasRole('super_admin') ? route('laporan.grafik') : route('instansi.laporan.grafik') }}" method="GET">
                 <div class="modal-header">
                     <h5 class="modal-title" id="filterModalLabel">Filter Laporan SKM</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -170,7 +170,7 @@
                                 @endforeach
                             </select>
                         </div>
-
+                        @if($institutions->isNotEmpty())
                         <!-- Filter Instansi -->
                         <div class="col-md-12">
                             <label class="form-label">Instansi</label>
@@ -185,6 +185,7 @@
                                 @endforeach
                             </select>
                         </div>
+                        @endif
                     </div>
                 </div>
 

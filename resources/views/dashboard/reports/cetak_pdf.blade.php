@@ -29,7 +29,7 @@
                 s/d
                 {{ \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y') }}
             @else
-                {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('F Y') }}
+                Tahun {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('Y') }}
             @endif
         </h4>         
     </div>
