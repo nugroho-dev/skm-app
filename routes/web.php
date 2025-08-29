@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportRespondentController;
 use App\Http\Controllers\ReportServiceController;
 use App\Http\Controllers\ReportGrafikController;
+use App\Http\Controllers\SurveyPublicController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
 use App\Models\Occupation;
@@ -30,7 +31,8 @@ Route::get('/survey/select', [SurveyController::class, 'selectCity'])->name('sur
 Route::get('/survey/select-institution/{slug}', [SurveyController::class, 'selectInstitution'])->name('survey.selectInstitution');
 Route::get('/survey/form/{slug}', [SurveyController::class, 'form'])->name('survey.form');
 Route::post('/survey/submit/{slug}', [SurveyController::class, 'submit']) ->middleware([VerifyRecaptcha::class])->name('survey.submit');
-
+Route::get('/survey/grafik', [SurveyPublicController::class, 'index'])->name('survey.grafik');
+Route::get('/survey/publikasipdf', [SurveyPublicController::class, 'cetakPublikasiPdf'])->name('survey.publikasi');
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware(['guest', 'throttle:login', VerifyRecaptcha::class])
     ->name('login');

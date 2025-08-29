@@ -21,7 +21,7 @@
                         <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" href="{{ url('/') }}">Home</a>
                     </li>
                     <li class="nav-item me-3">
-                        <a class="nav-link fw-bold py-1 px-0" href="{{ url('/grafik') }}">Grafik</a>
+                        <a class="nav-link fw-bold py-1 px-0" href="{{ url('/survey/grafik') }}">Grafik</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link fw-bold py-1 px-0" href="{{ url('/contact') }}">Contact</a>
