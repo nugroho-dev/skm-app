@@ -140,13 +140,66 @@ class SurveyPublicController extends Controller
         ->orderBy('y')
         ->pluck('y');
     // Data untuk dropdown filter
-    
+    $quarters = [
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
+        ];
+        $semesters = [
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
+        ];
+     
+      $months = collect(range(1, 12))->mapWithKeys(function ($m) {
+            return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
+        });
+
     $institutions = Institution::with(['mpp', 'group'])
         ->orderBy('name')
         ->get();
 
         return view('survey.grafik', compact(
-        'title','ikmBulanan','ikmTriwulan','ikmSemester','ikmTahunan', 'selectedYear','years','selectedInstitution','institutions'
+        'title','ikmBulanan','ikmTriwulan','ikmSemester','ikmTahunan', 'selectedYear','years','selectedInstitution','institutions','quarters','semesters','months'
+        ));
+    }
+    public function welcome(Request $request)
+    {
+        $title = 'Sistem Informasi Survei Kepuasan Masyarakat (SiSUKMA)';
+        
+
+    // === BASE QUERY (akan dipakai ulang untuk filter instansi) ===
+        $baseQuery = Respondent::query();
+
+    $quarters = [
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
+        ];
+        $semesters = [
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
+        ];
+     
+      $months = collect(range(1, 12))->mapWithKeys(function ($m) {
+            return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
+        });
+
+    // === List tahun utk dropdown ===
+    $years = (clone $baseQuery)
+        ->selectRaw('YEAR(created_at) as y')
+        ->distinct()
+        ->orderBy('y')
+        ->pluck('y');
+    // Data untuk dropdown filter
+    
+    $institutions = Institution::with(['mpp', 'group'])
+        ->orderBy('name')
+        ->get();
+
+        return view('welcome', compact(
+        'title','years','institutions','quarters','semesters','months'
         ));
     }
     /**
@@ -218,7 +271,7 @@ class SurveyPublicController extends Controller
         }
         // === AKHIR LOGIKA PRIORITAS FILTER ===
         // Filter instansi
-
+        
         if ($request->filled('institution_id')) {
             if ($request->institution_id === 'mpp_ikm') {
                 // Semua instansi yang tergabung dalam MPP
@@ -326,7 +379,6 @@ class SurveyPublicController extends Controller
         $occupationNames = Occupation::whereIn('id', $occupationCounts->keys())->pluck('type', 'id');
 
         return compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu','selectedInstitution','totalRespondents', 'genderCounts', 'educationCounts', 'educationNames','occupationCounts', 'occupationNames');
-
     }
     public function cetakPublikasiPdf(Request $request)
     {

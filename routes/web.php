@@ -23,9 +23,8 @@ use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use Laravel\Fortify\Fortify;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+;
+Route::get('/', [SurveyPublicController::class, 'welcome'])->name('survey.welcome');
 Route::get('/survey/select', [SurveyController::class, 'selectCity'])->name('survey.selectCity');
 // Setelah memilih kota (mpp), user memilih instansi induk (jika ingin kombinasi)
 Route::get('/survey/select-institution/{slug}', [SurveyController::class, 'selectInstitution'])->name('survey.selectInstitution');

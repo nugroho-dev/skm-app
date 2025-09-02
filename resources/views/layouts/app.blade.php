@@ -24,7 +24,7 @@
                         <a class="nav-link fw-bold py-1 px-0" href="{{ url('/survey/grafik') }}">Grafik</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link fw-bold py-1 px-0" href="{{ url('/contact') }}">Contact</a>
+                        <a class="nav-link fw-bold py-1 px-0" href="#" data-bs-toggle="modal" data-bs-target="#filterModal2"> Publikasi</a>
                     </li>
                 </ul>
             </div>
