@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportRespondentController;
 use App\Http\Controllers\ReportServiceController;
 use App\Http\Controllers\ReportGrafikController;
+use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\SurveyPublicController;
 use App\Http\Middleware\VerifyRecaptcha;
 use App\Http\Middleware\EnsureUserIsApproved;
@@ -100,6 +101,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/laporan/responden', [ReportRespondentController::class, 'index'])->name('laporan.responden');
         Route::get('/laporan/responden/pdf', [ReportRespondentController::class, 'cetakPdf'])->name('laporan.responden.cetak.pdf');
         Route::get('/laporan/grafik', [ReportGrafikController::class, 'index'])->name('laporan.grafik');
+        Route::get('/laporan/saran', [SuggestionController::class, 'index'])->name('laporan.saran');
     });
 
     // Admin Instansi routes
@@ -128,5 +130,6 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/instansi/laporan/responden', [ReportRespondentController::class, 'index'])->name('instansi.laporan.responden');
         Route::get('/instansi/laporan/responden/pdf', [ReportRespondentController::class, 'cetakPdf'])->name('instansi.laporan.responden.cetak.pdf');
         Route::get('/instansi/laporan/grafik', [ReportGrafikController::class, 'index'])->name('instansi.laporan.grafik');
+        Route::get('/instansi/laporan/saran', [SuggestionController::class, 'index'])->name('instansi.laporan.saran');
     });
 });

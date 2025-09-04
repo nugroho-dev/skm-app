@@ -52,6 +52,10 @@ class MenuService
                                     [
                                     'label' => 'Grafik',
                                     'url' => route('laporan.grafik')
+                                    ],
+                                    [
+                                    'label' => 'Saran',
+                                    'url' => route('laporan.saran')
                                     ]
                                 ]
                             ], 
@@ -91,6 +95,10 @@ class MenuService
                                     [
                                     'label' => 'Grafik',
                                     'url' => route('instansi.laporan.grafik')
+                                    ],
+                                    [
+                                    'label' => 'Saran',
+                                    'url' => route('instansi.laporan.saran')
                                     ]
                                 ]
                             ], 
