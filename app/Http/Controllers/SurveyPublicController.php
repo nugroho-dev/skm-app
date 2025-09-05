@@ -154,6 +154,9 @@ class SurveyPublicController extends Controller
       $months = collect(range(1, 12))->mapWithKeys(function ($m) {
             return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
         });
+        $institutions = Institution::with(['mpp', 'group'])
+        ->orderBy('name')
+        ->get();
 
     $institutionsall = Institution::with(['mpp', 'group'])
         ->orderBy('name')
