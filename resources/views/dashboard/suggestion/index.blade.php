@@ -22,12 +22,11 @@
                         <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-printer"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" /><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" /><path d="M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z" /></svg></i> Print Browser
                  </button>
                 
-                  <a href="{{ auth()->user()->hasRole('super_admin') ? route('ikm.cetak.publikasi.pdf', request()->all()) : route('instansi.ikm.cetak.publikasi.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak Publikasi PDF</a>
-                  <a href="{{ auth()->user()->hasRole('super_admin') ? route('ikm.cetak.pdf', request()->all()) : route('instansi.ikm.cetak.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
+                  
+                  <a href="{{ auth()->user()->hasRole('super_admin') ? route('saran.cetak.pdf', request()->all()) : route('instansi.saran.cetak.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak PDF</a>
                    {{-- Form Filter --}}
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 3h-16a1 1 0 0 0 -1 1v2.227l.008 .223a3 3 0 0 0 .772 1.795l4.22 4.641v8.114a1 1 0 0 0 1.316 .949l6 -2l.108 -.043a1 1 0 0 0 .576 -.906v-6.586l4.121 -4.12a3 3 0 0 0 .879 -2.123v-2.171a1 1 0 0 0 -1 -1z" /></svg> Filter Laporan</button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 3h-16a1 1 0 0 0 -1 1v2.227l.008 .223a3 3 0 0 0 .772 1.795l4.22 4.641v8.114a1 1 0 0 0 1.316 .949l6 -2l.108 -.043a1 1 0 0 0 .576 -.906v-6.586l4.121 -4.12a3 3 0 0 0 .879 -2.123v-2.171a1 1 0 0 0 -1 -1z" /></svg> Filter Laporan</button>
                 </div>
               </div>
             </div>
@@ -46,13 +45,14 @@
                
                 <div class="text-center mb-4 ">
                     <h2 class="h2 text-uppercase m-0">
-                        LAPORAN HASIL SURVEI KEPUASAN MASYARAKAT <br>
+                        LAPORAN SARAN / MASUKAN HASIL SURVEI KEPUASAN MASYARAKAT <br>
                      
                         {{ $selectedInstitution ? $selectedInstitution : 'Semua Instansi' }}
                     </h2>
                     <h3 class="h3 text-uppercase m-0">
-                        Periode:
+                        
                         @if(request('start_date') && request('end_date'))
+                            Periode: 
                             {{ \Carbon\Carbon::parse(request('start_date'))->locale('id')->translatedFormat('d F Y') }}
                             s/d
                             {{ \Carbon\Carbon::parse(request('end_date'))->locale('id')->translatedFormat('d F Y') }}
@@ -73,14 +73,13 @@
                                 <th>Pekerjaan</th>
                                 <th>Instansi</th>
                                 <th>Jenis Layanan</th>
-                                
                                 <th>Saran / Masukan</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($respondents as $i => $res)
                                 <tr>
-                                    <td>{{ $i+1 }}</td>
+                                    <td>{{ $respondents->firstItem() + $i }}</td>
                                     <td> {{ $res->created_at->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
                                     <td>{{ $res->age }}</td>
                                     <td>{{ $res->education->level ?? '-' }}</td>
@@ -101,6 +100,11 @@
                         </tbody>
                        
                     </table>
+                    <div class="card-footer">
+                     {{ $respondents->appends(request()->query())->links('pagination::bootstrap-5') }}
+                  </div>
+                    <!-- Pagination links -->
+       
                 </div>
               
             </div>
@@ -143,7 +147,7 @@ function printTable(tableId) {
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ auth()->user()->hasRole('super_admin') ? route('reports.index') : route('instansi.reports.index') }}" method="GET">
+            <form action="{{ auth()->user()->hasRole('super_admin') ? route('laporan.saran') : route('instansi.laporan.saran') }}" method="GET">
                 <div class="modal-header">
                     <h5 class="modal-title" id="filterModalLabel">Filter Laporan SKM</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

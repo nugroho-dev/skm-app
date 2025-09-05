@@ -23,6 +23,7 @@ use App\Models\Occupation;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use Laravel\Fortify\Fortify;
+use Symfony\Component\Console\Completion\Suggestion;
 
 ;
 Route::get('/', [SurveyPublicController::class, 'welcome'])->name('survey.welcome');
@@ -102,6 +103,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/laporan/responden/pdf', [ReportRespondentController::class, 'cetakPdf'])->name('laporan.responden.cetak.pdf');
         Route::get('/laporan/grafik', [ReportGrafikController::class, 'index'])->name('laporan.grafik');
         Route::get('/laporan/saran', [SuggestionController::class, 'index'])->name('laporan.saran');
+        Route::get('/laporan/saran/pdf', [SuggestionController::class, 'cetakPdf'])->name('saran.cetak.pdf');
     });
 
     // Admin Instansi routes
@@ -131,5 +133,6 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/instansi/laporan/responden/pdf', [ReportRespondentController::class, 'cetakPdf'])->name('instansi.laporan.responden.cetak.pdf');
         Route::get('/instansi/laporan/grafik', [ReportGrafikController::class, 'index'])->name('instansi.laporan.grafik');
         Route::get('/instansi/laporan/saran', [SuggestionController::class, 'index'])->name('instansi.laporan.saran');
+        Route::get('/instansi/laporan/saran/pdf', [SuggestionController::class, 'cetakPdf'])->name('instansi.saran.cetak.pdf');
     });
 });
