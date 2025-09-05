@@ -155,13 +155,12 @@ class SurveyPublicController extends Controller
             return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
         });
 
-    $institutions = Institution::with(['mpp', 'group'])
+    $institutionsall = Institution::with(['mpp', 'group'])
         ->orderBy('name')
         ->get();
 
         return view('survey.grafik', compact(
-        'title','ikmBulanan','ikmTriwulan','ikmSemester','ikmTahunan', 'selectedYear','years','selectedInstitution','institutions','quarters','semesters','months'
-        ));
+        'title','ikmBulanan','ikmTriwulan','ikmSemester','ikmTahunan', 'selectedYear','years','selectedInstitution','institutions','quarters','semesters','months','institutionsall'));
     }
     public function welcome(Request $request)
     {
