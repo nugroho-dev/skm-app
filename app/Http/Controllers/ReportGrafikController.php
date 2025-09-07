@@ -53,86 +53,126 @@ class ReportGrafikController extends Controller
             $selectedInstitution = Institution::find($institution->id)?->name;
         }
 
-    // === Ambil responden per tahun terpilih ===
-    $respondentsYear = (clone $baseQuery)
-        ->with(['answers.question.unsur'])
-        ->whereYear('created_at', $selectedYear)
-        ->orderBy('created_at')
-        ->get()
-        ->groupBy(fn($r) => (int) $r->created_at->format('n'));
+    // Ambil responden per tahun & bulan
+$respondents = (clone $baseQuery)
+    ->with(['answers.question.unsur'])
+    ->orderBy('created_at')
+    ->get()
+    ->groupBy(fn($r) => (int) $r->created_at->format('Y'));
 
-    // === Hitung IKM Bulanan (per unsur) ===
-    $ikmBulanan = collect(range(1, 12))->map(function ($m) use ($respondentsYear, $unsurs, $selectedYear) {
-        $respBulan = $respondentsYear->get($m, collect());
+$ikmTahunan = collect();
+$ikmBulanan = collect();
+$ikmTriwulan = collect();
+$ikmSemester = collect();
+
+foreach ($respondents as $year => $respTahun) {
+    // === Bulanan ===
+    $respBulanan = $respTahun->groupBy(fn($r) => (int) $r->created_at->format('n'));
+    $ikmBulanan[$year] = $respBulanan->map(function ($respBulan, $month) use ($unsurs, $year) {
         $totalBobot = 0;
+        $unsurCount = max(1, $unsurs->count());
 
         foreach ($unsurs as $unsur) {
-            $total = $respBulan
-                ->flatMap->answers
-                ->filter(fn($ans) => $ans->question && $ans->question->unsur_id === $unsur->id)
-                ->sum('score');
-
-            $avg = $respBulan->count() > 0 ? $total / $respBulan->count() : 0;
-            $totalBobot += $avg * 0.11;
+            $scoresPerRespondent = $respBulan->map(function ($r) use ($unsur) {
+                $answers = $r->answers->filter(fn($a) => $a->question && $a->question->unsur_id === $unsur->id);
+                return $answers->count() > 0 ? round($answers->avg('score')) : 0;
+            });
+            $avg = $scoresPerRespondent->avg() ?: 0;
+            $totalBobot += $avg * 0.11;// (1 / $unsurCount);
         }
 
-        $nilaiIKM = $totalBobot * 25;
-
         return [
-            'year'  => $selectedYear,
-            'month' => $m,
-            'label' => \Carbon\Carbon::createFromDate($selectedYear, $m, 1)->translatedFormat('F Y'),
-            'ikm'   => round($nilaiIKM, 2),
+            'year'  => $year,
+            'month' => $month,
+            'label' => "Bulan " . \Carbon\Carbon::create()->month($month)->translatedFormat('F') . " $year",
+            'ikm'   => round($totalBobot * 25, 2),
         ];
-    });
+    })->values()->toArray();
 
     // === Triwulan ===
-    $ikmTriwulan = $ikmBulanan->groupBy(fn($r) => 'Q'.ceil($r['month']/3))->map(function ($grp, $q) use ($selectedYear) {
+    $ikmTriwulan[$year] = collect(range(1, 4))->map(function ($q) use ($respBulanan, $unsurs, $year) {
+        $startMonth = ($q - 1) * 3 + 1;
+        $endMonth   = $startMonth + 2;
+
+        $respTriwulan = collect();
+        for ($m = $startMonth; $m <= $endMonth; $m++) {
+            $respTriwulan = $respTriwulan->merge($respBulanan->get($m, collect()));
+        }
+
+        $totalBobot = 0;
+        $unsurCount = max(1, $unsurs->count());
+
+        foreach ($unsurs as $unsur) {
+            $scoresPerRespondent = $respTriwulan->map(function ($r) use ($unsur) {
+                $answers = $r->answers->filter(fn($a) => $a->question && $a->question->unsur_id === $unsur->id);
+                return $answers->count() > 0 ? round($answers->avg('score')) : 0;
+            });
+            $avg = $scoresPerRespondent->avg() ?: 0;
+            $totalBobot += $avg * 0.11;// (1 / $unsurCount);
+        }
+
         return [
-            'year'    => $selectedYear,
-            'quarter' => (int) str_replace('Q','',$q),
-            'label'   => "Triwulan ".str_replace('Q','',$q)." $selectedYear",
-            'ikm'     => round($grp->avg('ikm'), 2),
+            'year'    => $year,
+            'quarter' => $q,
+            'label'   => "Triwulan $q $year",
+            'ikm'     => round($totalBobot * 25, 2),
         ];
-    })->values();
+    })->values()->toArray();
 
     // === Semester ===
-    $ikmSemester = $ikmBulanan->groupBy(fn($r) => 'S'.($r['month'] <= 6 ? 1 : 2))->map(function ($grp, $s) use ($selectedYear) {
-        return [
-            'year'     => $selectedYear,
-            'semester' => (int) str_replace('S','',$s),
-            'label'    => "Semester ".str_replace('S','',$s)." $selectedYear",
-            'ikm'      => round($grp->avg('ikm'), 2),
-        ];
-    })->values();
+    $ikmSemester[$year] = collect([1, 2])->map(function ($s) use ($respBulanan, $unsurs, $year) {
+        $startMonth = $s === 1 ? 1 : 7;
+        $endMonth   = $s === 1 ? 6 : 12;
 
-    // === Tahunan (seluruh tahun, ikut filter instansi) ===
-    $ikmTahunan = (clone $baseQuery)
-        ->with(['answers.question.unsur'])
-        ->orderBy('created_at')
-        ->get()
-        ->groupBy(fn($r) => (int) $r->created_at->format('Y'))
-        ->map(function ($respTahun, $year) use ($unsurs) {
-            $ikmBulananTahun = $respTahun->groupBy(fn($r) => (int) $r->created_at->format('n'))->map(function ($respBulan) use ($unsurs) {
-                $totalBobot = 0;
-                foreach ($unsurs as $unsur) {
-                    $total = $respBulan
-                        ->flatMap->answers
-                        ->filter(fn($ans) => $ans->question && $ans->question->unsur_id === $unsur->id)
-                        ->sum('score');
+        $respSemester = collect();
+        for ($m = $startMonth; $m <= $endMonth; $m++) {
+            $respSemester = $respSemester->merge($respBulanan->get($m, collect()));
+        }
 
-                    $avg = $respBulan->count() > 0 ? $total / $respBulan->count() : 0;
-                    $totalBobot += $avg * 0.11;
-                }
-                return $totalBobot * 25;
+        $totalBobot = 0;
+        $unsurCount = max(1, $unsurs->count());
+
+        foreach ($unsurs as $unsur) {
+            $scoresPerRespondent = $respSemester->map(function ($r) use ($unsur) {
+                $answers = $r->answers->filter(fn($a) => $a->question && $a->question->unsur_id === $unsur->id);
+                return $answers->count() > 0 ? round($answers->avg('score')) : 0;
             });
+            $avg = $scoresPerRespondent->avg() ?: 0;
+            $totalBobot += $avg * 0.11;//(1 / $unsurCount);
+        }
 
-            return [
-                'year' => (int) $year,
-                'label'=> "Tahun $year",
-                'ikm'  => round($ikmBulananTahun->avg() ?: 0, 2),
-            ];
-        })->values()->sortBy('year')->values();
+        return [
+            'year'     => $year,
+            'semester' => $s,
+            'label'    => "Semester $s $year",
+            'ikm'      => round($totalBobot * 25, 2),
+        ];
+    })->values()->toArray();
+
+    // === Tahunan ===
+    $totalBobot = 0;
+    $unsurCount = max(1, $unsurs->count());
+
+    foreach ($unsurs as $unsur) {
+        $scoresPerRespondent = $respTahun->map(function ($r) use ($unsur) {
+            $answers = $r->answers->filter(fn($a) => $a->question && $a->question->unsur_id === $unsur->id);
+            return $answers->count() > 0 ? round($answers->avg('score')) : 0;
+        });
+        $avg = $scoresPerRespondent->avg() ?: 0;
+        $totalBobot += $avg * 0.11;//(1 / $unsurCount);
+    }
+
+    $ikmTahunan->push([
+        'year'  => $year,
+        'label' => "Tahun $year",
+        'ikm'   => round($totalBobot * 25, 2),
+    ]);
+}
+// === Flatten biar bisa langsung map() di JS ===
+    $ikmBulanan  = collect($ikmBulanan)->flatten(1)->values()->toArray();
+    $ikmTriwulan = collect($ikmTriwulan)->flatten(1)->values()->toArray();
+    $ikmSemester = collect($ikmSemester)->flatten(1)->values()->toArray();
+    $ikmTahunan  = $ikmTahunan->values()->toArray();
 
     // === List tahun utk dropdown ===
     $years = (clone $baseQuery)
@@ -140,15 +180,17 @@ class ReportGrafikController extends Controller
         ->distinct()
         ->orderBy('y')
         ->pluck('y');
+     
     // Data untuk dropdown filter
     if (Auth::user()->hasRole('super_admin')) {
     $institutions = Institution::with(['mpp', 'group'])
         ->orderBy('name')
         ->get();
- } else {
+     } else {
             // Admin instansi: tidak ada pilihan instansi
             $institutions = collect(); // kosongkan supaya tidak error di blade
         }
+        
         return view('dashboard.reportgrafik.index', compact(
         'title','ikmBulanan','ikmTriwulan','ikmSemester','ikmTahunan', 'selectedYear','years','selectedInstitution','institutions'
         ));
