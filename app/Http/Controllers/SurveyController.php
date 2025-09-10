@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Response;
+use App\Models\Response as Respondent;
 use App\Models\Education;
 use App\Models\Occupation;
 use App\Models\Institution;
@@ -12,6 +13,7 @@ use App\Models\Question;
 use App\Models\Answer;
 use App\Models\Mpp;
 use App\Models\InstitutionGroup;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
@@ -22,8 +24,37 @@ class SurveyController extends Controller
     {
     $mpp = Mpp::where('slug', 'mpp-kota-magelang')->first();;
     $institutionGroup = InstitutionGroup::where('slug', 'kota-magelang')->first();
+    // === BASE QUERY (akan dipakai ulang untuk filter instansi) ===
+        $baseQuery = Respondent::query();
 
-    return view('survey.select-city', compact('institutionGroup', 'mpp'));
+    $quarters = [
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
+        ];
+        $semesters = [
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
+        ];
+     
+      $months = collect(range(1, 12))->mapWithKeys(function ($m) {
+            return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
+        });
+
+    // === List tahun utk dropdown ===
+    $years = (clone $baseQuery)
+        ->selectRaw('YEAR(created_at) as y')
+        ->distinct()
+        ->orderBy('y')
+        ->pluck('y');
+    // Data untuk dropdown filter
+    
+    $institutionsall = Institution::with(['mpp', 'group'])
+        ->orderBy('name')
+        ->get();
+
+    return view('survey.select-city', compact('institutionGroup', 'mpp' ,'years', 'quarters', 'semesters', 'months', 'institutionsall'));
     }
     public function selectInstitution(Request $request, $slug)
     {
@@ -50,8 +81,38 @@ class SurveyController extends Controller
     }
 
     $institutions = $query->orderBy('name')->get();
+    $institutionGroup = InstitutionGroup::where('slug', 'kota-magelang')->first();
+    // === BASE QUERY (akan dipakai ulang untuk filter instansi) ===
+        $baseQuery = Respondent::query();
 
-    return view('survey.select-institution', compact('institutions', 'title', 'slug', 'search'));
+    $quarters = [
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
+        ];
+        $semesters = [
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
+        ];
+     
+      $months = collect(range(1, 12))->mapWithKeys(function ($m) {
+            return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
+        });
+
+    // === List tahun utk dropdown ===
+    $years = (clone $baseQuery)
+        ->selectRaw('YEAR(created_at) as y')
+        ->distinct()
+        ->orderBy('y')
+        ->pluck('y');
+    // Data untuk dropdown filter
+    
+    $institutionsall = Institution::with(['mpp', 'group'])
+        ->orderBy('name')
+        ->get();
+
+    return view('survey.select-institution', compact('institutions', 'title', 'slug', 'search', 'years', 'quarters', 'semesters', 'months', 'institutionsall'));
     }
     public function form($slug)
     {
@@ -62,7 +123,37 @@ class SurveyController extends Controller
             }, 'unsur'])->get();
         $occupations = Occupation::all();
         $educations = Education::all();
-        return view('survey.form', compact('institution', 'questions', 'occupations', 'educations'));
+          $institutionGroup = InstitutionGroup::where('slug', 'kota-magelang')->first();
+    // === BASE QUERY (akan dipakai ulang untuk filter instansi) ===
+        $baseQuery = Respondent::query();
+
+    $quarters = [
+            1 => 'Triwulan 1 (Jan-Mar)',
+            2 => 'Triwulan 2 (Apr-Jun)',
+            3 => 'Triwulan 3 (Jul-Sep)',
+            4 => 'Triwulan 4 (Okt-Des)'
+        ];
+        $semesters = [
+            1 => 'Semester 1 (Jan-Jun)',
+            2 => 'Semester 2 (Jul-Des)'
+        ];
+     
+      $months = collect(range(1, 12))->mapWithKeys(function ($m) {
+            return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
+        });
+
+    // === List tahun utk dropdown ===
+    $years = (clone $baseQuery)
+        ->selectRaw('YEAR(created_at) as y')
+        ->distinct()
+        ->orderBy('y')
+        ->pluck('y');
+    // Data untuk dropdown filter
+    
+    $institutionsall = Institution::with(['mpp', 'group'])
+        ->orderBy('name')
+        ->get();
+        return view('survey.form', compact('institution', 'questions', 'occupations', 'educations', 'years', 'quarters', 'semesters', 'months', 'institutionsall'));
     }
 
     public function submit(Request $request, $slug)

@@ -127,31 +127,40 @@ class ReportServiceController extends Controller
         $reportPerService = [];
 
         foreach ($services as $service) {
-            $serviceRespondents = $respondents->where('service_id', $service->id);
+    $serviceRespondents = $respondents->where('service_id', $service->id);
 
-            // Hitung skor per unsur untuk layanan ini
-            $totalPerUnsur = [];
-            $averagePerUnsur = [];
-            $weightedPerUnsur = [];
-            $totalBobot = 0;
+    $totalPerUnsur = [];
+    $averagePerUnsur = [];
+    $weightedPerUnsur = [];
+    $totalBobot = 0;
 
-            foreach ($unsurs as $unsur) {
-                $total = $serviceRespondents
-                    ->flatMap->answers
-                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id)
-                    ->sum('score');
+    foreach ($unsurs as $unsur) {
+        // Ambil nilai per responden untuk unsur ini
+        $scoresPerRespondent = $serviceRespondents->map(function ($r) use ($unsur) {
+            $answers = $r->answers->filter(
+                fn($a) => $a->question && $a->question->unsur_id === $unsur->id
+            );
 
-                $totalPerUnsur[$unsur->id] = $total;
-                $countRespondents = max(1, $serviceRespondents->count()); // hindari divide by zero
-                $average = $total / $countRespondents;
-                $averagePerUnsur[$unsur->id] = $average;
-
-                $weighted = $average * 0.11;
-                $weightedPerUnsur[$unsur->id] = $weighted;
-
-                $totalBobot += $weighted;
+            if ($answers->count() > 0) {
+                return round($answers->avg('score')); // bulatkan dulu per responden
             }
+            return 0;
+        });
 
+        // Total & rata-rata dari nilai responden
+        $total = $scoresPerRespondent->sum();
+        $countRespondents = max(1, $serviceRespondents->count());
+        $average = $scoresPerRespondent->avg();
+
+        $totalPerUnsur[$unsur->id] = $total;
+        $averagePerUnsur[$unsur->id] = round($average, 2);
+
+        // Bobot -> kalau pakai 0.11 fix, kalau mau dinamis bisa 1 / $unsurs->count()
+        $weighted = $average * 0.11;
+        $weightedPerUnsur[$unsur->id] = round($weighted, 4);
+
+        $totalBobot += $weighted;
+    }
             $nilaiSKM = $totalBobot * 25;
             if ($nilaiSKM >= 88.31) {
                 $kategoriMutu = ['A', 'Sangat Baik'];
@@ -287,36 +296,45 @@ class ReportServiceController extends Controller
     // === HITUNG RINCIAN PER UNSUR ===
     $respondentScores = [];
     foreach ($respondents as $respondent) {
-        foreach ($unsurs as $unsur) {
-            $respondentScores[$respondent->id][$unsur->id] = $respondent->answers
-                ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id)
-                ->sum('score');
+            foreach ($unsurs as $unsur) {
+                $answers = $respondent->answers
+                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
+
+                $respondentScores[$respondent->id][$unsur->id] = $answers->count() > 0
+                    ? round($answers->avg('score'))
+                    : 0;
+            }
         }
-    }
 
-    $totalPerUnsur = [];
-    $averagePerUnsur = [];
-    $weightedPerUnsur = [];
-    $totalBobot = 0;
+     // === Hitung total per unsur, rata-rata, dan bobot ===
+        $totalPerUnsur = [];
+        $averagePerUnsur = [];
+        $weightedPerUnsur = [];
+        $totalBobot = 0;
 
-    foreach ($unsurs as $unsur) {
-        $total = $respondents
-            ->flatMap->answers
-            ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id)
-            ->sum('score');
+        $jumlahUnsur = max(1, $unsurs->count());
+        $bobotPerUnsur = 0.11;//1 / $jumlahUnsur;
 
-        $countRespondents = max(1, $respondents->count());
-        $average = $total / $countRespondents;
-        $weighted = $average * 0.11;
+        foreach ($unsurs as $unsur) {
+            // ambil semua nilai responden dari $respondentScores yang sudah dibulatkan
+        $scoresPerRespondent = collect($respondents)->map(fn($r) =>
+            $respondentScores[$r->id][$unsur->id] ?? 0
+        );
+
+        $total = $scoresPerRespondent->sum();
+        $average = $scoresPerRespondent->avg();
 
         $totalPerUnsur[$unsur->id] = $total;
-        $averagePerUnsur[$unsur->id] = $average;
-        $weightedPerUnsur[$unsur->id] = $weighted;
+        $averagePerUnsur[$unsur->id] = round($average, 2);
+
+        $weighted = $average * $bobotPerUnsur;
+        $weightedPerUnsur[$unsur->id] = round($weighted, 4);
 
         $totalBobot += $weighted;
-    }
+        }
 
-    $nilaiSKM = $totalBobot * 25;
+        // === Hitung nilai SKM ===
+        $nilaiSKM = round($totalBobot * 25, 2);
     if ($nilaiSKM >= 88.31) {
         $kategoriMutu = ['A', 'Sangat Baik'];
     } elseif ($nilaiSKM >= 76.61) {
@@ -450,36 +468,47 @@ public function cetakPdf(Request $request)
         // === AKHIR LOGIKA PRIORITAS FILTER ===
         
         $respondents = $query->orderBy('created_at')->get();
+        // === HITUNG RINCIAN PER UNSUR ===
         $respondentScores = [];
         foreach ($respondents as $respondent) {
             foreach ($unsurs as $unsur) {
-                $respondentScores[$respondent->id][$unsur->id] = $respondent->answers
-                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id)
-                    ->sum('score');
+                $answers = $respondent->answers
+                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
+
+                $respondentScores[$respondent->id][$unsur->id] = $answers->count() > 0
+                    ? round($answers->avg('score'))
+                    : 0;
             }
         }
-        // Hitung total score per unsur
+          // === Hitung total per unsur, rata-rata, dan bobot ===
         $totalPerUnsur = [];
         $averagePerUnsur = [];
         $weightedPerUnsur = [];
-        $totalBobot = 0; // total semua unsur x 0.11
-        foreach ($unsurs as $unsur) {
-            $totalPerUnsur[$unsur->id] = $respondents
-                ->flatMap->answers
-                ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id)
-                ->sum('score');
-            $total=$totalPerUnsur[$unsur->id] ;
-            $countRespondents = max(1, $respondents->count()); // supaya tidak bagi nol
-            $average = $total / $countRespondents;
-            $averagePerUnsur[$unsur->id] = $average;
-            // Rata-rata × 0,11
-            $weighted = $average * 0.11;
-            $weightedPerUnsur[$unsur->id] = $weighted;
+        $totalBobot = 0;
 
-        // Tambahkan ke total bobot
-            $totalBobot += $weighted;
+        $jumlahUnsur = max(1, $unsurs->count());
+        $bobotPerUnsur = 0.11;//1 / $jumlahUnsur;
+
+        foreach ($unsurs as $unsur) {
+            // ambil semua nilai responden dari $respondentScores yang sudah dibulatkan
+        $scoresPerRespondent = collect($respondents)->map(fn($r) =>
+            $respondentScores[$r->id][$unsur->id] ?? 0
+        );
+
+        $total = $scoresPerRespondent->sum();
+        $average = $scoresPerRespondent->avg();
+
+        $totalPerUnsur[$unsur->id] = $total;
+        $averagePerUnsur[$unsur->id] = round($average, 2);
+
+        $weighted = $average * $bobotPerUnsur;
+        $weightedPerUnsur[$unsur->id] = round($weighted, 4);
+
+        $totalBobot += $weighted;
         }
-        $nilaiSKM = $totalBobot * 25;
+
+        // === Hitung nilai SKM ===
+        $nilaiSKM = round($totalBobot * 25, 2);
         // Tentukan kategori mutu layanan
         if ($nilaiSKM >= 88.31) {
             $kategoriMutu = ['A', 'Sangat Baik'];

@@ -138,4 +138,5 @@
         <button type="submit" class="btn btn-lg btn-primary shadow"><i class="bi bi-send me-2"></i>Kirim Survey</button>
     </div>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    </form>
 @endsection

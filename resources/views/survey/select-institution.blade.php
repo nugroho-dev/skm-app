@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-success">{{ $title }}</h2>
         <a href="{{ route('survey.selectCity') }}" class="btn btn-outline-secondary">
-            ← Kembali ke pilih kota
+            ← Kembali ke Pilih Lokasi
         </a>
     </div>
 
