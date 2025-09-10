@@ -16,7 +16,7 @@
       <!-- BEGIN NAVBAR LOGO -->
       <div class="navbar-brand navbar-brand-autodark">
         <a href="#">
-          <img src="/img/sisukma-high-resolution-logo-transparent.png" width="110" height="32" alt="Tabler logo" class="navbar-brand-image" nonce="">
+          <img src="{{ asset('img/sisukma-high-resolution-logo-transparent.png')}}" width="110" height="32" alt="Tabler logo" class="navbar-brand-image" nonce="">
         </a>
       </div>
       <!-- END NAVBAR LOGO -->
