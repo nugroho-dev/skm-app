@@ -1,44 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-success">{{ $title }}</h2>
-        <a href="{{ route('survey.selectCity') }}" class="btn btn-outline-secondary">
-            ← Kembali ke Pilih Lokasi
-        </a>
+<div class="container my-4">
+
+  {{-- Breadcrumb --}}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ route('survey.welcome') }}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{{ route('survey.selectCity') }}">Pilih Lokasi</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ $title }}</li>
+    </ol>
+  </nav>
+
+  {{-- Header --}}
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h2 class="fw-semibold">Pilih Instansi</h2>
+      <p class="text-muted small mb-0">Pilih instansi untuk melihat hasil Survei Kepuasan Masyarakat (SKM) atau mengisi survei.</p>
     </div>
+    
+  </div>
 
-    <form method="GET" class="mb-4" action="{{ route('survey.selectInstitution', $slug) }}">
-        <div class="input-group shadow-sm">
-            <input type="text" name="search" class="form-control" placeholder="Cari instansi..." value="{{ $search }}">
-            <button class="btn btn-success" type="submit">
-                <i class="bi bi-search"></i> Cari
-            </button>
-        </div>
-    </form>
+  {{-- Search --}}
+  <form class="mb-3" method="GET" action="{{ route('survey.selectInstitution', $slug) }}">
+    <div class="input-group">
+      <input type="text" name="search" value="{{ $search }}" class="form-control" placeholder="Cari instansi...">
+      <button class="btn btn-outline-secondary" type="submit">Cari</button>
+      @if($search)
+        <a href="{{ route('survey.selectInstitution', $slug) }}" class="btn btn-outline-danger">Reset</a>
+      @endif
+    </div>
+  </form>
 
-    @if($institutions->isEmpty())
-        <div class="alert alert-light border text-center">
-            <i class="bi bi-exclamation-circle"></i> <span class="fw-bold text-danger">Tidak ada instansi yang ditemukan.</span>
+  
+
+  {{-- Daftar Instansi --}}
+  <div class="row g-3">
+    @forelse($institutions as $inst)
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex align-items-start">
+            <div class="me-3">
+              <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:50px;height:50px;">
+                <span class="fw-bold">{{ Str::of($inst->name)->explode(' ')->take(2)->map(fn($w)=>Str::substr($w,0,1))->join('') }}</span>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="card-title mb-1">{{ $inst->name }}</h6>
+              <p class="text-muted small mb-2">• {{ $inst->group->name ?? '-' }}  </p>
+              <div>
+                <a href="{{ route('survey.form', $inst->slug) }}" class="btn btn-sm btn-primary">Isi Survey</a>
+                
+              </div>
+            </div>
+            
+          </div>
         </div>
-    @else
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            @foreach($institutions as $institution)
-                <div class="col">
-                    <a href="{{ route('survey.form', $institution->slug) }}" class="text-decoration-none">
-                        <div class="card h-100 border-0 shadow transition" style="background-color: #f8fafc;">
-                            <div class="card-body">
-                                <h5 class="card-title text-primary fw-bold">{{ $institution->name }}</h5>
-                                <p class="card-text mb-2">
-                                    <span class="badge bg-light text-dark border">Induk: <span class="fw-bold">{{ $institution->group->name ?? '-' }}</span></span>
-                                </p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-    @endif
+      </div>
+    @empty
+      <div class="col-12">
+        <div class="alert alert-info">Tidak ada instansi ditemukan.</div>
+      </div>
+    @endforelse
+  </div>
+
 </div>
+
 @endsection
