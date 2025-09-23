@@ -8,37 +8,22 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Service;
 use Illuminate\Support\Str;
+use App\Traits\HasSlug;
 
 class Institution extends Model
 {
-    use HasFactory, SoftDeletes, HasUuid;
+    use HasFactory, SoftDeletes, HasUuid, HasSlug;
 
-    protected static function booted()
+    // optional: protected $slugSource = 'name'; protected $slugField = 'slug';
+
+    // hapus method booted yang sekarang (trait sudah menangani)
+
+    // supaya route model binding menggunakan slug:
+    public function getRouteKeyName()
     {
-        static::saving(function ($model) {
-            // Regenerate slug jika nama berubah atau slug kosong
-            if ($model->isDirty('name') || empty($model->slug)) {
-                $base = Str::slug($model->name);
-                $slug = $base;
-                $counter = 1;
-
-                // Pada update, abaikan record saat ini agar tidak mendeteksi duplikat sendiri
-                $exists = function($slug) use ($model) {
-                    $q = static::withTrashed()->where('slug', $slug);
-                    if ($model->exists) {
-                        $q->where('id', '!=', $model->id);
-                    }
-                    return $q->exists();
-                };
-
-                while ($exists($slug)) {
-                    $slug = $base . '-' . $counter++;
-                }
-
-                $model->slug = $slug;
-            }
-        });
+        return 'slug';
     }
+
     protected $fillable = ['name', 'mpp_id', 'institution_group_id', 'slug'];
 
     protected $dates = ['deleted_at'];

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Institution;
 use App\Models\InstitutionGroup;
 use App\Models\Mpp;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class InstitutionController extends Controller
 {
@@ -21,7 +23,8 @@ class InstitutionController extends Controller
 
         return view('dashboard.institutions.index', compact('institutions','title'));
     }
-      public function create()
+
+    public function create()
     {
         $title = 'Tambah Instansi';
         $groups = InstitutionGroup::all();
@@ -40,32 +43,25 @@ class InstitutionController extends Controller
         $institutionGroup = InstitutionGroup::where('slug', $request->institution_group)->firstOrFail();
         $mpp = Mpp::where('slug', $request->mpp)->firstOrFail();
 
+        // biarkan model yang membuat slug via HasSlug trait
         Institution::create([
             'name' => $request->name,
             'institution_group_id' => $institutionGroup->id,
-            'mpp_id' => $mpp->id
+            'mpp_id' => $mpp->id,
         ]);
 
         return redirect()->route('institutions.index')->with('success', 'Instansi berhasil ditambahkan.');
     }
 
-    public function edit(string $slug)
+    // gunakan route-model-binding berdasarkan slug
+    public function edit(Institution $institution)
     {
-        $instansi = Institution::where('slug', $slug)->first();
-        
-
-        // Pastikan instansi yang diminta ada
-        if (!$instansi) {
-            return redirect()->route('institutions.index')->with('error', 'Instansi tidak ditemukan.');
-        }
-
-        // Ambil data grup dan MPP untuk dropdown
         $title = 'Edit Instansi';
         $groups = InstitutionGroup::all();
         $mpps = Mpp::all();
 
         return view('dashboard.institutions.edit', [
-            'institution' => $instansi,
+            'institution' => $institution,
             'title' => $title,
             'groups' => $groups,
             'mpps' => $mpps,
@@ -74,18 +70,20 @@ class InstitutionController extends Controller
 
     public function update(Request $request, Institution $institution)
     {
-        
         $request->validate([
-            'name' => 'required|string|max:255' . $institution->id,
-            'institution_group' => 'required|string|max:255,' . $institution->slug,
-            'mpp' => 'required|string|max:255,'. $institution->slug
+            'name' => ['required','string','max:255', \Illuminate\Validation\Rule::unique('institutions','name')->ignore($institution->id)],
+            'institution_group' => 'required|string|max:255',
+            'mpp' => 'required|string|max:255'
         ]);
+
         $institutionGroup = InstitutionGroup::where('slug', $request->institution_group)->firstOrFail();
         $mpp = Mpp::where('slug', $request->mpp)->firstOrFail();
+
+        // biarkan model menangani slug; cukup update field lain
         $institution->update([
             'name' => $request->name,
             'institution_group_id' => $institutionGroup->id,
-            'mpp_id' => $mpp->id
+            'mpp_id' => $mpp->id,
         ]);
 
         return redirect()->route('institutions.index')->with('success', 'Instansi berhasil diperbarui.');
