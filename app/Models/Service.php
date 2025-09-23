@@ -16,15 +16,28 @@ class Service extends Model
 
     protected static function booted()
     {
-        static::creating(function ($model) {
-            $base = Str::slug($model->name);
-            $slug = $base;
-            $counter = 1;
-            // Periksa termasuk yang soft deleted agar tidak terjadi duplikat
-            while (static::withTrashed()->where('slug', $slug)->exists()) {
-                $slug = $base . '-' . $counter++;
+        static::saving(function ($model) {
+            // Regenerate slug jika nama berubah atau slug kosong
+            if ($model->isDirty('name') || empty($model->slug)) {
+                $base = Str::slug($model->name);
+                $slug = $base;
+                $counter = 1;
+
+                // Abaikan record saat ini ketika mengecek duplikat (termasuk soft deleted)
+                $exists = function ($slug) use ($model) {
+                    $q = static::withTrashed()->where('slug', $slug);
+                    if ($model->exists) {
+                        $q->where('id', '!=', $model->id);
+                    }
+                    return $q->exists();
+                };
+
+                while ($exists($slug)) {
+                    $slug = $base . '-' . $counter++;
+                }
+
+                $model->slug = $slug;
             }
-            $model->slug = $slug;
         });
     }
 
