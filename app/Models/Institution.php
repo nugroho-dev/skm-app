@@ -16,7 +16,14 @@ class Institution extends Model
     protected static function booted()
     {
         static::creating(function ($model) {
-            $model->slug = Str::slug($model->name);
+            $base = Str::slug($model->name);
+            $slug = $base;
+            $counter = 1;
+            // Periksa termasuk yang soft deleted agar tidak terjadi duplikat
+            while (static::withTrashed()->where('slug', $slug)->exists()) {
+                $slug = $base . '-' . $counter++;
+            }
+            $model->slug = $slug;
         });
     }
     protected $fillable = ['name', 'mpp_id', 'institution_group_id', 'slug'];
