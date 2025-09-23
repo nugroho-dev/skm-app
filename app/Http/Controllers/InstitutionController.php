@@ -32,7 +32,7 @@ class InstitutionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:institutions,name',
+            'name' => 'required|string|max:255',
             'institution_group' => 'required|string|max:255',
             'mpp' => 'required|string|max:255'
         ]);
@@ -76,7 +76,7 @@ class InstitutionController extends Controller
     {
         
         $request->validate([
-            'name' => 'required|string|max:255|unique:institutions,name,' . $institution->id,
+            'name' => 'required|string|max:255' . $institution->id,
             'institution_group' => 'required|string|max:255,' . $institution->slug,
             'mpp' => 'required|string|max:255,'. $institution->slug
         ]);
