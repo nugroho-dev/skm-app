@@ -9,6 +9,7 @@ use App\Models\Answer;
 use App\Models\Question;
 use App\Models\Unsur;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -24,92 +25,38 @@ class DashboardController extends Controller
             $institutionId = $user->institution_id;
         }
 
-        // Total Responden
-        $totalResponses = Response::when($institutionId, function($query) use ($institutionId) {
-            return $query->where('institution_id', $institutionId);
-        })->count();
+        // Cache key berdasarkan institution
+        $cacheKey = 'dashboard_stats_' . ($institutionId ?? 'all');
 
-        // Total Layanan
-        $totalServices = Service::when($institutionId, function($query) use ($institutionId) {
-            return $query->where('institution_id', $institutionId);
-        })->count();
-
-        // Hitung Rata-rata SKM (menggunakan metode yang sama dengan ReportController)
-        $responses = Response::with(['answers.question.unsur'])
-            ->when($institutionId, function($query) use ($institutionId) {
+        // Cache selama 5 menit untuk mengurangi load
+        $stats = Cache::remember($cacheKey, 300, function() use ($institutionId) {
+            // Total Responden
+            $totalResponses = Response::when($institutionId, function($query) use ($institutionId) {
                 return $query->where('institution_id', $institutionId);
-            })
-            ->get();
+            })->count();
+
+            // Total Layanan
+            $totalServices = Service::when($institutionId, function($query) use ($institutionId) {
+                return $query->where('institution_id', $institutionId);
+            })->count();
+
+            return compact('totalResponses', 'totalServices');
+        });
+
+        $totalResponses = $stats['totalResponses'];
+        $totalServices = $stats['totalServices'];
 
         $unsurs = Unsur::orderBy('label_order')->get();
+        $unsurs = Unsur::orderBy('label_order')->get();
         
-        // Hitung skor per responden per unsur (pakai rata-rata)
-        $respondentScores = [];
-        foreach ($responses as $response) {
-            foreach ($unsurs as $unsur) {
-                $answers = $response->answers
-                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
-
-                $respondentScores[$response->id][$unsur->id] = $answers->count() > 0
-                    ? round($answers->avg('score'))
-                    : 0;
-            }
-        }
-
-        // Hitung total per unsur, rata-rata, dan bobot
-        $totalBobot = 0;
-        $jumlahUnsur = max(1, $unsurs->count());
-        $bobotPerUnsur = 0.11; // 1 / $jumlahUnsur jika ingin dinamis
-
-        foreach ($unsurs as $unsur) {
-            $scoresPerRespondent = collect($responses)->map(fn($r) =>
-                $respondentScores[$r->id][$unsur->id] ?? 0
-            );
-
-            $average = $scoresPerRespondent->avg();
-            $weighted = $average * $bobotPerUnsur;
-            $totalBobot += $weighted;
-        }
-
-        // Hitung nilai SKM
-        $averageSKM = round($totalBobot * 25, 2);
-
+        // OPTIMASI: Hitung SKM menggunakan query aggregation untuk performa
+        $averageSKM = $this->calculateSKMOptimized($institutionId, $unsurs);
+        
         // Kategori Mutu SKM
         $kategoriMutu = $this->getKategoriMutu($averageSKM);
 
-        // SKM Bulan Ini (menggunakan metode yang sama)
-        $currentMonthResponses = Response::with(['answers.question.unsur'])
-            ->when($institutionId, function($query) use ($institutionId) {
-                return $query->where('institution_id', $institutionId);
-            })
-            ->whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->get();
-
-        $currentMonthScores = [];
-        foreach ($currentMonthResponses as $response) {
-            foreach ($unsurs as $unsur) {
-                $answers = $response->answers
-                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
-
-                $currentMonthScores[$response->id][$unsur->id] = $answers->count() > 0
-                    ? round($answers->avg('score'))
-                    : 0;
-            }
-        }
-
-        $currentMonthBobot = 0;
-        foreach ($unsurs as $unsur) {
-            $scoresPerRespondent = collect($currentMonthResponses)->map(fn($r) =>
-                $currentMonthScores[$r->id][$unsur->id] ?? 0
-            );
-
-            $average = $scoresPerRespondent->avg();
-            $weighted = $average * $bobotPerUnsur;
-            $currentMonthBobot += $weighted;
-        }
-
-        $currentMonthSKM = round($currentMonthBobot * 25, 2);
+        // SKM Bulan Ini - optimized
+        $currentMonthSKM = $this->calculateSKMOptimized($institutionId, $unsurs, now()->year, now()->month);
 
         // Data untuk grafik Responden per Bulan (6 bulan terakhir)
         $monthlyData = Response::select(
@@ -126,114 +73,32 @@ class DashboardController extends Controller
             ->orderBy('month', 'asc')
             ->get();
 
-        // Data SKM per Bulan (6 bulan terakhir)
+        // Data SKM per Bulan (6 bulan terakhir) - optimized
         $monthlySKMData = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $monthResponses = Response::with(['answers.question.unsur'])
-                ->when($institutionId, function($query) use ($institutionId) {
+            $monthSKM = $this->calculateSKMOptimized($institutionId, $unsurs, $date->year, $date->month);
+            
+            $monthCount = Response::when($institutionId, function($query) use ($institutionId) {
                     return $query->where('institution_id', $institutionId);
                 })
                 ->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month)
-                ->get();
-
-            $monthScores = [];
-            foreach ($monthResponses as $response) {
-                foreach ($unsurs as $unsur) {
-                    $answers = $response->answers
-                        ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
-
-                    $monthScores[$response->id][$unsur->id] = $answers->count() > 0
-                        ? round($answers->avg('score'))
-                        : 0;
-                }
-            }
-
-            $monthBobot = 0;
-            foreach ($unsurs as $unsur) {
-                $scoresPerRespondent = collect($monthResponses)->map(fn($r) =>
-                    $monthScores[$r->id][$unsur->id] ?? 0
-                );
-
-                $average = $scoresPerRespondent->avg();
-                $weighted = $average * $bobotPerUnsur;
-                $monthBobot += $weighted;
-            }
-
-            $monthSKM = round($monthBobot * 25, 2);
+                ->count();
 
             $monthlySKMData[] = [
                 'month' => $date->month,
                 'year' => $date->year,
                 'skm' => $monthSKM,
-                'total' => $monthResponses->count()
+                'total' => $monthCount
             ];
         }
 
-        // Data untuk grafik SKM per Unsur
-        $unsurData = [];
-        
-        foreach ($unsurs as $unsur) {
-            $scoresPerRespondent = collect($responses)->map(fn($r) =>
-                $respondentScores[$r->id][$unsur->id] ?? 0
-            );
+        // Data untuk grafik SKM per Unsur - optimized
+        $unsurData = $this->calculateSKMPerUnsur($institutionId, $unsurs);
 
-            $average = $scoresPerRespondent->avg();
-            $avgScore = round($average * 25, 2);
-            
-            $unsurData[] = [
-                'name' => $unsur->name,
-                'score' => $avgScore
-            ];
-        }
-
-        // Data SKM per Layanan (Top 5)
-        $servicesData = Service::when($institutionId, function($query) use ($institutionId) {
-                return $query->where('institution_id', $institutionId);
-            })
-            ->withCount('responses')
-            ->with(['responses.answers.question.unsur'])
-            ->get()
-            ->map(function($service) use ($unsurs, $bobotPerUnsur) {
-                $serviceResponses = $service->responses;
-                
-                // Hitung skor per responden per unsur untuk layanan ini
-                $serviceScores = [];
-                foreach ($serviceResponses as $response) {
-                    foreach ($unsurs as $unsur) {
-                        $answers = $response->answers
-                            ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
-
-                        $serviceScores[$response->id][$unsur->id] = $answers->count() > 0
-                            ? round($answers->avg('score'))
-                            : 0;
-                    }
-                }
-
-                // Hitung bobot total
-                $serviceBobot = 0;
-                foreach ($unsurs as $unsur) {
-                    $scoresPerRespondent = collect($serviceResponses)->map(fn($r) =>
-                        $serviceScores[$r->id][$unsur->id] ?? 0
-                    );
-
-                    $average = $scoresPerRespondent->avg();
-                    $weighted = $average * $bobotPerUnsur;
-                    $serviceBobot += $weighted;
-                }
-
-                $avgSKM = round($serviceBobot * 25, 2);
-                
-                return [
-                    'name' => $service->name,
-                    'skm' => $avgSKM,
-                    'total_responses' => $serviceResponses->count()
-                ];
-            })
-            ->sortByDesc('skm')
-            ->take(5)
-            ->values();
+        // Data SKM per Layanan (Top 5) - optimized
+        $servicesData = $this->calculateTopServices($institutionId, $unsurs);
 
         return view('dashboard.index', compact(
             'user', 
@@ -248,6 +113,135 @@ class DashboardController extends Controller
             'unsurData',
             'servicesData'
         ));
+    }
+
+    /**
+     * Optimasi perhitungan SKM menggunakan query aggregation
+     * Menghindari loading semua data ke memory
+     */
+    private function calculateSKMOptimized($institutionId, $unsurs, $year = null, $month = null)
+    {
+        $bobotPerUnsur = 0.11;
+        $totalBobot = 0;
+
+        foreach ($unsurs as $unsur) {
+            // Query agregasi langsung di database dengan proper subquery
+            $subquery = DB::table('responses')
+                ->join('answers', 'responses.id', '=', 'answers.response_id')
+                ->join('questions', 'answers.question_id', '=', 'questions.id')
+                ->when($institutionId, function($query) use ($institutionId) {
+                    return $query->where('responses.institution_id', $institutionId);
+                })
+                ->when($year, function($query) use ($year) {
+                    return $query->whereYear('responses.created_at', $year);
+                })
+                ->when($month, function($query) use ($month) {
+                    return $query->whereMonth('responses.created_at', $month);
+                })
+                ->where('questions.unsur_id', $unsur->id)
+                ->groupBy('responses.id')
+                ->selectRaw('ROUND(AVG(answers.score)) as avg_score_per_response');
+
+            $avgScore = DB::table(DB::raw("({$subquery->toSql()}) as subquery"))
+                ->mergeBindings($subquery)
+                ->selectRaw('AVG(avg_score_per_response) as overall_avg')
+                ->value('overall_avg');
+
+            $avgScore = $avgScore ?? 0;
+            $weighted = $avgScore * $bobotPerUnsur;
+            $totalBobot += $weighted;
+        }
+
+        return round($totalBobot * 25, 2);
+    }
+
+    /**
+     * Hitung SKM per unsur dengan optimasi
+     */
+    private function calculateSKMPerUnsur($institutionId, $unsurs)
+    {
+        $unsurData = [];
+
+        foreach ($unsurs as $unsur) {
+            // Query agregasi dengan proper subquery
+            $subquery = DB::table('responses')
+                ->join('answers', 'responses.id', '=', 'answers.response_id')
+                ->join('questions', 'answers.question_id', '=', 'questions.id')
+                ->when($institutionId, function($query) use ($institutionId) {
+                    return $query->where('responses.institution_id', $institutionId);
+                })
+                ->where('questions.unsur_id', $unsur->id)
+                ->groupBy('responses.id')
+                ->selectRaw('ROUND(AVG(answers.score)) as avg_score_per_response');
+
+            $avgScore = DB::table(DB::raw("({$subquery->toSql()}) as subquery"))
+                ->mergeBindings($subquery)
+                ->selectRaw('AVG(avg_score_per_response) as overall_avg')
+                ->value('overall_avg');
+
+            $avgScore = ($avgScore ?? 0) * 25;
+
+            $unsurData[] = [
+                'name' => $unsur->name,
+                'score' => round($avgScore, 2)
+            ];
+        }
+
+        return $unsurData;
+    }
+
+    /**
+     * Hitung top 5 layanan dengan optimasi
+     */
+    private function calculateTopServices($institutionId, $unsurs)
+    {
+        $bobotPerUnsur = 0.11;
+        
+        // Ambil service dengan limit untuk performa
+        $services = Service::when($institutionId, function($query) use ($institutionId) {
+                return $query->where('institution_id', $institutionId);
+            })
+            ->withCount('responses')
+            ->having('responses_count', '>', 0)
+            ->limit(50) // Batasi untuk performa
+            ->get();
+
+        $servicesData = $services->map(function($service) use ($unsurs, $bobotPerUnsur) {
+            $totalBobot = 0;
+
+            foreach ($unsurs as $unsur) {
+                // Query agregasi per service dengan proper subquery
+                $subquery = DB::table('responses')
+                    ->join('answers', 'responses.id', '=', 'answers.response_id')
+                    ->join('questions', 'answers.question_id', '=', 'questions.id')
+                    ->where('responses.service_id', $service->id)
+                    ->where('questions.unsur_id', $unsur->id)
+                    ->groupBy('responses.id')
+                    ->selectRaw('ROUND(AVG(answers.score)) as avg_score_per_response');
+
+                $avgScore = DB::table(DB::raw("({$subquery->toSql()}) as subquery"))
+                    ->mergeBindings($subquery)
+                    ->selectRaw('AVG(avg_score_per_response) as overall_avg')
+                    ->value('overall_avg');
+
+                $avgScore = $avgScore ?? 0;
+                $weighted = $avgScore * $bobotPerUnsur;
+                $totalBobot += $weighted;
+            }
+
+            $avgSKM = round($totalBobot * 25, 2);
+
+            return [
+                'name' => $service->name,
+                'skm' => $avgSKM,
+                'total_responses' => $service->responses_count
+            ];
+        })
+        ->sortByDesc('skm')
+        ->take(5)
+        ->values();
+
+        return $servicesData;
     }
 
     private function getKategoriMutu($skm)
