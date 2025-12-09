@@ -23,28 +23,49 @@
         </div>
         <!-- END PAGE HEADER -->
         <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Grafik SKM</h3>
+            <div class="card-header border-0">
+                <h3 class="card-title">Visualisasi Data SKM</h3>
+                <div class="card-actions">
+                    <span class="badge bg-primary">{{ $selectedInstitution }}</span>
+                    <span class="badge bg-info ms-2">Tahun {{ $selectedYear }}</span>
+                </div>
             </div>
             <div class="card-body" id="tabel-ikm">
-                 <div class="row text-center">
-                    <h2>Grafik Nilai Survei Kepuasan Masyarakat <br> {{ $selectedInstitution }}</h2>
-                    <h3>Tahun {{ $selectedYear }}</h3>
+                <div class="row g-4">
                     <!-- Grafik Bulanan -->
-                    <div class="col-md-12 col-sm-12">
-                        <div id="chart-bulanan" class="w-full h-80"></div>
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div id="chart-bulanan" style="height: 400px;"></div>
+                            </div>
+                        </div>
                     </div>
+                    
                     <!-- Grafik Triwulan -->
-                    <div class="col-md-6 col-sm-12">
-                        <div id="chart-triwulan" class="w-full h-80"></div>
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div id="chart-triwulan" style="height: 350px;"></div>
+                            </div>
+                        </div>
                     </div>
+                    
                     <!-- Grafik Semester -->
-                    <div class="col-md-6 col-sm-12">
-                        <div id="chart-semester" class="w-full h-80"></div>
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div id="chart-semester" style="height: 350px;"></div>
+                            </div>
+                        </div>
                     </div>
+                    
                     <!-- Grafik Tahunan -->
-                    <div class="col-md-12 col-sm-12">
-                        <div id="chart-tahunan" class="w-full h-80"></div>
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div id="chart-tahunan" style="height: 400px;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -64,84 +85,296 @@
     const dataSemester = @json($ikmSemester);
     const dataTahunan = @json($ikmTahunan);
 
-    // === CHART BULANAN ===
-    Highcharts.chart('chart-bulanan', {
-        chart: { type: 'line' },
-        title: { text: 'IKM Per Bulan' },
-        xAxis: { categories: dataBulanan.map(d => d.label) },
-        yAxis: { title: { text: 'Nilai IKM' }, max: 100, min: 0 },
-        plotOptions: {
-            line: {
-                dataLabels: {
-                    enabled: true
-                },
-                enableMouseTracking: false
+    // Konfigurasi global Highcharts
+    Highcharts.setOptions({
+        colors: ['#206bc4', '#2fb344', '#d63939', '#f59f00', '#4299e1', '#9333ea'],
+        chart: {
+            style: {
+                fontFamily: 'inherit'
             }
         },
+        credits: {
+            enabled: false
+        }
+    });
+
+    // === CHART BULANAN ===
+    Highcharts.chart('chart-bulanan', {
+        chart: { 
+            type: 'area',
+            backgroundColor: 'transparent'
+        },
+        title: { 
+            text: 'Tren SKM Per Bulan',
+            style: {
+                fontSize: '18px',
+                fontWeight: '600'
+            }
+        },
+        subtitle: {
+            text: 'Perbandingan nilai SKM setiap bulan dalam setahun'
+        },
+        xAxis: { 
+            categories: dataBulanan.map(d => d.label),
+            gridLineWidth: 1,
+            gridLineDashStyle: 'Dash'
+        },
+        yAxis: { 
+            title: { text: 'Nilai SKM' }, 
+            max: 100, 
+            min: 0,
+            gridLineDashStyle: 'Dash',
+            plotLines: [{
+                value: 88.31,
+                color: '#2fb344',
+                dashStyle: 'shortdash',
+                width: 2,
+                label: {
+                    text: 'Sangat Baik (88.31)',
+                    align: 'right',
+                    style: {
+                        color: '#2fb344'
+                    }
+                }
+            }, {
+                value: 76.61,
+                color: '#4299e1',
+                dashStyle: 'shortdash',
+                width: 2,
+                label: {
+                    text: 'Baik (76.61)',
+                    align: 'right',
+                    style: {
+                        color: '#4299e1'
+                    }
+                }
+            }, {
+                value: 65.00,
+                color: '#f59f00',
+                dashStyle: 'shortdash',
+                width: 2,
+                label: {
+                    text: 'Kurang Baik (65.00)',
+                    align: 'right',
+                    style: {
+                        color: '#f59f00'
+                    }
+                }
+            }]
+        },
+        tooltip: {
+            shared: true,
+            valueSuffix: ' poin',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            style: {
+                color: '#fff'
+            }
+        },
+        plotOptions: {
+            area: {
+                fillOpacity: 0.2,
+                marker: {
+                    enabled: true,
+                    radius: 5,
+                    symbol: 'circle'
+                },
+                dataLabels: {
+                    enabled: true,
+                    format: '{y:.1f}',
+                    style: {
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                    }
+                }
+            }
+        },
+        legend: {
+            enabled: false
+        },
         series: [{
-            name: 'IKM',
+            name: 'SKM',
             data: dataBulanan.map(d => d.ikm)
         }]
     });
 
     // === CHART TRIWULAN ===
     Highcharts.chart('chart-triwulan', {
-        chart: { type: 'column' },
-        title: { text: 'IKM Per Triwulan' },
-        xAxis: { categories: dataTriwulan.map(d => d.label) },
-        yAxis: { title: { text: 'Nilai IKM' }, max: 100, min: 0 },
-        
-       plotOptions: {
-        series: {
-            borderWidth: 0,
-            dataLabels: {
-                enabled: true,
+        chart: { 
+            type: 'column',
+            backgroundColor: 'transparent'
+        },
+        title: { 
+            text: 'SKM Per Triwulan',
+            style: {
+                fontSize: '16px',
+                fontWeight: '600'
             }
-        }
-    },
+        },
+        subtitle: {
+            text: 'Agregasi per 3 bulan'
+        },
+        xAxis: { 
+            categories: dataTriwulan.map(d => d.label),
+            crosshair: true
+        },
+        yAxis: { 
+            title: { text: 'Nilai SKM' }, 
+            max: 100, 
+            min: 0,
+            gridLineDashStyle: 'Dash'
+        },
+        tooltip: {
+            valueSuffix: ' poin',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            style: {
+                color: '#fff'
+            }
+        },
+        plotOptions: {
+            column: {
+                borderWidth: 0,
+                borderRadius: 4,
+                dataLabels: {
+                    enabled: true,
+                    format: '{y:.1f}',
+                    style: {
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        textOutline: 'none'
+                    }
+                },
+                colorByPoint: true,
+                colors: ['#206bc4', '#2fb344', '#f59f00', '#d63939']
+            }
+        },
+        legend: {
+            enabled: false
+        },
         series: [{
-            name: 'IKM',
+            name: 'SKM',
             data: dataTriwulan.map(d => d.ikm)
         }]
     });
 
     // === CHART SEMESTER ===
     Highcharts.chart('chart-semester', {
-        chart: { type: 'column' },
-        title: { text: 'IKM Per Semester' },
-        xAxis: { categories: dataSemester.map(d => d.label) },
-        yAxis: { title: { text: 'Nilai IKM' }, max: 100, min: 0 },
-        plotOptions: {
-        series: {
-            borderWidth: 0,
-            dataLabels: {
-                enabled: true,
+        chart: { 
+            type: 'column',
+            backgroundColor: 'transparent'
+        },
+        title: { 
+            text: 'SKM Per Semester',
+            style: {
+                fontSize: '16px',
+                fontWeight: '600'
             }
-        }
-    },
+        },
+        subtitle: {
+            text: 'Agregasi per 6 bulan'
+        },
+        xAxis: { 
+            categories: dataSemester.map(d => d.label),
+            crosshair: true
+        },
+        yAxis: { 
+            title: { text: 'Nilai SKM' }, 
+            max: 100, 
+            min: 0,
+            gridLineDashStyle: 'Dash'
+        },
+        tooltip: {
+            valueSuffix: ' poin',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            style: {
+                color: '#fff'
+            }
+        },
+        plotOptions: {
+            column: {
+                borderWidth: 0,
+                borderRadius: 4,
+                dataLabels: {
+                    enabled: true,
+                    format: '{y:.1f}',
+                    style: {
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        textOutline: 'none'
+                    }
+                },
+                colorByPoint: true,
+                colors: ['#4299e1', '#9333ea']
+            }
+        },
+        legend: {
+            enabled: false
+        },
         series: [{
-            name: 'IKM',
+            name: 'SKM',
             data: dataSemester.map(d => d.ikm)
         }]
     });
 
     // === CHART TAHUNAN ===
     Highcharts.chart('chart-tahunan', {
-        chart: { type: 'line' },
-        title: { text: 'IKM Per Tahun' },
-        xAxis: { categories: dataTahunan.map(d => d.year) },
-        yAxis: { title: { text: 'Nilai IKM' }, max: 100, min: 0 },
-        plotOptions: {
-            line: {
-                dataLabels: {
-                    enabled: true
-                },
-                enableMouseTracking: false
+        chart: { 
+            type: 'line',
+            backgroundColor: 'transparent'
+        },
+        title: { 
+            text: 'Tren SKM Per Tahun',
+            style: {
+                fontSize: '18px',
+                fontWeight: '600'
             }
         },
+        subtitle: {
+            text: 'Perbandingan nilai SKM antar tahun'
+        },
+        xAxis: { 
+            categories: dataTahunan.map(d => d.year),
+            gridLineWidth: 1,
+            gridLineDashStyle: 'Dash'
+        },
+        yAxis: { 
+            title: { text: 'Nilai SKM' }, 
+            max: 100, 
+            min: 0,
+            gridLineDashStyle: 'Dash'
+        },
+        tooltip: {
+            shared: true,
+            valueSuffix: ' poin',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            style: {
+                color: '#fff'
+            }
+        },
+        plotOptions: {
+            line: {
+                marker: {
+                    enabled: true,
+                    radius: 6,
+                    symbol: 'circle'
+                },
+                lineWidth: 3,
+                dataLabels: {
+                    enabled: true,
+                    format: '{y:.1f}',
+                    style: {
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }
+                }
+            }
+        },
+        legend: {
+            enabled: false
+        },
         series: [{
-            name: 'IKM',
-            data: dataTahunan.map(d => d.ikm)
+            name: 'SKM',
+            data: dataTahunan.map(d => d.ikm),
+            color: '#2fb344'
         }]
     });
 </script>
