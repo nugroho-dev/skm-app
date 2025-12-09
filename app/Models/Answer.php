@@ -14,7 +14,7 @@ class Answer extends Model
 
     public function questionnaire()
     {
-        return $this->belongsTo(Response::class);
+        return $this->belongsTo(Response::class, 'response_id');
     }
 
     public function question()

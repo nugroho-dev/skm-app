@@ -346,6 +346,11 @@
     <!-- BEGIN DEMO SCRIPTS -->
     <script src="{{ asset('tabler/preview/js/demo.min.js?1744816593')}}" defer></script>
     <!-- END DEMO SCRIPTS -->
+    
+    <!-- BEGIN CUSTOM SCRIPTS STACK -->
+    @stack('scripts')
+    <!-- END CUSTOM SCRIPTS STACK -->
+    
     <!-- BEGIN PAGE SCRIPTS -->
     <script nonce="">
       document.addEventListener("DOMContentLoaded", function () {
