@@ -68,7 +68,11 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
+                                <th>Instansi</th>
                                 <th>Jenis Layanan</th>
+                                @foreach($unsurs as $unsur)
+                                    <th>U{{ $unsur->label_order }}</th>
+                                @endforeach
                                 <th>Jumlah Responden</th>
                                 <th>Nilai IKM</th>
                                 <th>Mutu Layanan</th>
@@ -77,14 +81,18 @@
                         <tbody>
                              @forelse($reportPerService as $report)
                                 <tr>
+                                              <td>{{ $report['service']->institution?->name ?? '-' }}</td>
                                    <td><a href="{{ auth()->user()->hasRole('super_admin') ? route('laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) : route('instansi.laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) }}">{{ $report['service']->name }}</a></td>
+                                   @foreach($unsurs as $unsur)
+                                       <td>{{ number_format($report['averagePerUnsur'][$unsur->id] ?? 0, 2) }}</td>
+                                   @endforeach
                                    <td>{{ $report['respondents_count'] }}</td>
                                    <td>{{ number_format($report['nilaiSKM'],2) }}</td>
                                    <td>{{ $report['kategoriMutu'][0] }} ({{ $report['kategoriMutu'][1] }})</td>
                                 </tr>
                              @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">
+                                    <td colspan="{{ 5 + $unsurs->count() }}" class="text-center">
                                         Tidak ada data
                                     </td>
                                 </tr>

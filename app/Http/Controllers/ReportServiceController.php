@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Models\Response;
-use App\Models\Answer;
 use App\Models\Institution;
 use App\Models\Education;
 use App\Models\Occupation;
@@ -27,6 +25,7 @@ class ReportServiceController extends Controller
 
         $query = Respondent::with([
             'service',
+            'service.institution',
             'answers.question.unsur',
             'institution',
             'institution.mpp', 'institution.group'
@@ -121,7 +120,15 @@ class ReportServiceController extends Controller
         $respondents = $query->orderBy('created_at')->get();
 
         // Ambil daftar layanan yang muncul di responden
-        $services = $respondents->pluck('service')->unique('id')->filter();
+        $services = $respondents->pluck('service')
+            ->filter()
+            ->unique('id')
+            ->sortBy(function ($service) {
+                $institutionName = $service->institution?->name ?? '';
+
+                return strtolower($institutionName . '|' . $service->name);
+            })
+            ->values();
 
         // Siapkan array hasil per layanan
         $reportPerService = [];
