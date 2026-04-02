@@ -68,6 +68,7 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
+                                <th>No</th>
                                 <th>Instansi</th>
                                 <th>Jenis Layanan</th>
                                 @foreach($unsurs as $unsur)
@@ -81,7 +82,8 @@
                         <tbody>
                              @forelse($reportPerService as $report)
                                 <tr>
-                                              <td>{{ $report['service']->institution?->name ?? '-' }}</td>
+                                   <td>{{ $loop->iteration }}</td>
+                                   <td>{{ $report['service']->institution?->name ?? '-' }}</td>
                                    <td><a href="{{ auth()->user()->hasRole('super_admin') ? route('laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) : route('instansi.laporan.service', array_merge(['service_id' => $report['service']->id], request()->all())) }}">{{ $report['service']->name }}</a></td>
                                    @foreach($unsurs as $unsur)
                                        <td>{{ number_format($report['totalPerUnsur'][$unsur->id] ?? 0, 0) }}</td>
@@ -92,20 +94,20 @@
                                 </tr>
                              @empty
                                 <tr>
-                                    <td colspan="{{ 5 + $unsurs->count() }}" class="text-center">
+                                    <td colspan="{{ 6 + $unsurs->count() }}" class="text-center">
                                         Tidak ada data
                                     </td>
                                 </tr>
                              @endforelse
                              @if($reportPerService)
                                           <tr class="fw-bold table-secondary">
-                                                <td colspan="{{ 2 + $unsurs->count() }}">Jumlah Total Responden</td>
+                                                <td colspan="{{ 3 + $unsurs->count() }}">Jumlah Total Responden</td>
                                                 <td>{{ $totalRespondents }}</td>
                                                 <td></td>
                                                 <td></td>
                                           </tr>
                                 <tr class="fw-bold table-secondary">
-                                    <td colspan="2">Rata-rata per Unsur</td>
+                                    <td colspan="3">Rata-rata per Unsur</td>
                                     @foreach($unsurs as $unsur)
                                        <td>{{ number_format($overallAveragePerUnsur[$unsur->id] ?? 0, 2) }}</td>
                                     @endforeach
@@ -114,7 +116,7 @@
                                     <td></td>
                                 </tr>
                                 <tr class="fw-bold table-secondary">
-                                    <td colspan="2">Nilai Rata-rata Tertimbang</td>
+                                    <td colspan="3">Nilai Rata-rata Tertimbang</td>
                                     @foreach($unsurs as $unsur)
                                        <td>{{ number_format($overallWeightedPerUnsur[$unsur->id] ?? 0, 4) }}</td>
                                     @endforeach
@@ -123,13 +125,13 @@
                                     <td></td>
                                 </tr>
                                 <tr class="fw-bold table-secondary">
-                                    <td colspan="{{ 2 + $unsurs->count() }}">IKM Unit Pelayanan</td>
+                                    <td colspan="{{ 3 + $unsurs->count() }}">IKM Unit Pelayanan</td>
                                     <td></td>
                                     <td>{{ number_format($overallNilaiSKM ?? 0, 2) }}</td>
                                     <td></td>
                                 </tr>
                                 <tr class="fw-bold table-secondary">
-                                    <td colspan="{{ 2 + $unsurs->count() }}">Kategori Mutu Layanan</td>
+                                    <td colspan="{{ 3 + $unsurs->count() }}">Kategori Mutu Layanan</td>
                                     <td></td>
                                     <td></td>
                                     <td>{{ ($overallKategoriMutu[0] ?? '-') }} ({{ $overallKategoriMutu[1] ?? '-' }})</td>
