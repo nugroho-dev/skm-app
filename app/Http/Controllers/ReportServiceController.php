@@ -118,6 +118,43 @@ class ReportServiceController extends Controller
             $selectedInstitution = Institution::find($institution->id)?->name;
         }
         $respondents = $query->orderBy('created_at')->get();
+        $totalRespondents = $respondents->count();
+
+        $overallAveragePerUnsur = [];
+        $overallWeightedPerUnsur = [];
+        $overallTotalBobot = 0;
+
+        foreach ($unsurs as $unsur) {
+            $scoresPerRespondent = $respondents->map(function ($respondent) use ($unsur) {
+                $answers = $respondent->answers->filter(
+                    fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id
+                );
+
+                if ($answers->count() > 0) {
+                    return round($answers->avg('score'));
+                }
+
+                return 0;
+            });
+
+            $average = $scoresPerRespondent->avg() ?? 0;
+
+            $overallAveragePerUnsur[$unsur->id] = round($average, 2);
+            $overallWeightedPerUnsur[$unsur->id] = round($average * 0.11, 4);
+            $overallTotalBobot += $average * 0.11;
+        }
+
+        $overallNilaiSKM = round($overallTotalBobot * 25, 2);
+
+        if ($overallNilaiSKM >= 88.31) {
+            $overallKategoriMutu = ['A', 'Sangat Baik'];
+        } elseif ($overallNilaiSKM >= 76.61) {
+            $overallKategoriMutu = ['B', 'Baik'];
+        } elseif ($overallNilaiSKM >= 65.00) {
+            $overallKategoriMutu = ['C', 'Kurang Baik'];
+        } else {
+            $overallKategoriMutu = ['D', 'Tidak Baik'];
+        }
 
         // Ambil daftar layanan yang muncul di responden
         $services = $respondents->pluck('service')
@@ -231,6 +268,11 @@ class ReportServiceController extends Controller
             'title',
             'subtitle',
             'selectedInstitution',
+            'totalRespondents',
+            'overallAveragePerUnsur',
+            'overallWeightedPerUnsur',
+            'overallNilaiSKM',
+            'overallKategoriMutu',
             'reportPerService'
         ));
     }
