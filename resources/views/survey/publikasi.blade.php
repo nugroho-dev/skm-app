@@ -16,46 +16,39 @@
 @endphp
 
 <style>
-  body { font-family: DejaVu Sans, sans-serif; font-size: 12pt; color: #1f2937; }
-  .container { width: auto; margin: auto; border: 1px solid #e5e7eb; padding: 10mm; }
+  body { font-family: DejaVu Sans, sans-serif; font-size: 11pt; color: #10243c; }
+  .container { width: auto; margin: auto; border: 1px solid #d7e1ea; border-radius: 3mm; padding: 8mm 9mm; }
 
-  .header { text-align: center; margin-bottom: 4mm; }
-  .header .title { font-size: 14pt; font-weight: bold; color: #FF9B2F; text-transform: uppercase; }
-  .header .subtitle { font-size: 16pt; font-weight: bold; margin: 0mm 0; }
-  .header .period { font-size: 11pt; color: #6b7280; }
+  .header { text-align: center; margin-bottom: 5mm; }
+  .header .title { font-size: 13pt; font-weight: bold; color: #0f5f7a; text-transform: uppercase; letter-spacing: 0.4mm; }
+  .header .subtitle { font-size: 17pt; font-weight: bold; margin: 1.2mm 0 0.7mm; }
+  .header .period { font-size: 10.5pt; color: #5b6b7f; }
 
-  .main-table { width: 100%; border-collapse: collapse; }
-  .main-table td { vertical-align: top; padding: 0; }
-
-  .score-ring {
-    width: 65mm; height: 65mm; border-radius: 50%;
-    border: 5mm solid #78C841; display: flex; align-items: center; justify-content: center;
-    margin: auto;
+  .score-wrap {
+    width: 68mm;
+    height: 68mm;
+    margin: 0 auto 2mm;
+    border-radius: 50%;
+    border: 3mm solid #0f9d74;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f6fbff;
   }
   .score-core { text-align: center; }
-  .score-value { font-size: 70pt; font-weight: bold; margin-top: 30px; margin-bottom: 0px;  }
-  .score-label { font-size: 13pt; color: #FB4141; text-transform: uppercase; margin-top:0px; }
+  .score-value { font-size: 42pt; font-weight: bold; line-height: 1; margin: 0; }
+  .score-label { font-size: 10pt; color: #0f5f7a; text-transform: uppercase; margin-top: 1.2mm; font-weight: bold; }
 
-  .stats-table { width: 100%; border-collapse: collapse; margin-top: 4mm; }
-  .stats-table th, .stats-table td {
-    border: 0.3mm solid #e5e7eb; padding: 0mm 4mm; font-size: 10.5pt;
-  }
-  .stats-table th { background: #B4E50D; text-align: left; font-weight: bold; }
+  .section-table { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+  .section-table th, .section-table td { border: 0.25mm solid #d8e0e8; padding: 1.8mm 2.5mm; }
+  .section-table th { background: #e9f3fb; text-align: left; font-size: 10pt; }
+  .section-table td { font-size: 10pt; }
 
-.stats-table-edu { width: 100%; border-collapse: collapse; margin-top: 4mm; }
-  .stats-table-edu th, .stats-table-edu td {
-    border: 0.3mm solid #e5e7eb; padding: 0mm 4mm; font-size: 10pt;
-  }
-  .stats-table-edu th { background: #B4E50D; text-align: left; font-weight: bold; }
+  .two-col { width: 100%; border-collapse: collapse; margin-top: 3mm; }
+  .two-col td { width: 50%; vertical-align: top; }
 
-.stats-table-occu { width: 100%; border-collapse: collapse; margin-top: 4mm; }
-  .stats-table-occu th, .stats-table-occu td {
-    border: 0.3mm solid #e5e7eb; padding: 0mm 4mm; font-size: 10pt;
-  }
-  .stats-table-occu th { background: #B4E50D; text-align: left; font-weight: bold; }
-
-  .footer-note { text-align: center; font-size: 10pt; color: #6b7280; margin-top: 8mm; }
-  .thanks { border: 0.3mm dashed #e5e7eb; padding: 3mm; text-align: center; font-weight: bold; font-size: 10pt; margin-top: 2mm; }
+  .footer-note { text-align: center; font-size: 9.8pt; color: #5b6b7f; margin-top: 7mm; }
+  .thanks { border: 0.25mm dashed #b8c8d8; padding: 2.8mm; text-align: center; font-weight: bold; font-size: 9.8pt; margin-top: 2.2mm; color: #0f5f7a; }
 </style>
 
 <div class="container">
@@ -65,82 +58,74 @@
     <div class="period">Periode: {{ $periodeText }}</div>
   </div>
 
-  <table class="main-table">
-    <tr>
-      <td style="width: 60mm; text-align: center;">
-        <div class="score-ring">
-          <div class="score-core">
-            <div class="score-value">{{ number_format($nilaiSKM, 1) }}</div>
-            <div class="score-label"><strong>{{ $kategoriMutu[0] }} ({{ $kategoriMutu[1] }}) </strong></div>
-          </div>
-        </div>
-      </td>
-      
-    </tr>
-  </table>
+  <div class="score-wrap">
+      <div class="score-core">
+        <div class="score-value">{{ number_format($nilaiSKM, 1) }}</div>
+        <div class="score-label">{{ $kategoriMutu[0] }} ({{ $kategoriMutu[1] }})</div>
+      </div>
+  </div>
   
-    <table class="stats-table">
+    <table class="section-table">
           <tr><th colspan="2">Ringkasan</th></tr>
           <tr><td>Total Responden</td><td><strong>{{ $totalRespondents }} Orang</strong></td></tr>
           <tr><td>Periode</td><td>{{ $periodeText }}</td></tr>
         </table>
 
-    <table class="stats-table">
+    <table class="section-table">
           <tr>
             <th colspan="2">Jenis Kelamin Responden</th>
           </tr>
           <tr>
-            <td>♂ Laki-laki</td>
+            <td>Laki-laki</td>
             <td><strong>{{ $genderCounts['L'] ?? 0 }} Orang</strong></td>
         </tr>
           <tr>
-            <td>♀ Perempuan</td>
-            <td><strong>{{ $genderCounts['P'] ?? 0 }} Orang</strong>
-            </td>
+            <td>Perempuan</td>
+            <td><strong>{{ $genderCounts['P'] ?? 0 }} Orang</strong></td>
           </tr>
         </table>
   
-  <table style="width: 100%;">
+  <table class="two-col">
     <tr>
-      <td style="vertical-align: top;">
-        <table class="stats-table-edu">
-    <thead>
-      <tr>
-        <th>Pendidikan Responden</th>
-        <th style="width:18mm">Jumlah</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($educationCounts as $id => $count)
-        <tr>
-          <td>{{ $educationNames[$id] ?? 'Tidak Diketahui' }}</td>
-          <td><strong>{{ $count }} </strong></td>
-        </tr>
-      @empty
-        <tr><td colspan="2" style="color:#6b7280">Belum ada data.</td></tr>
-      @endforelse
-    </tbody>
-  </table>
+      <td style="padding-right: 2mm;">
+        <table class="section-table">
+          <thead>
+            <tr>
+              <th>Pendidikan Responden</th>
+              <th style="width:20mm">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($educationCounts as $id => $count)
+              <tr>
+                <td>{{ $educationNames[$id] ?? 'Tidak Diketahui' }}</td>
+                <td><strong>{{ $count }}</strong></td>
+              </tr>
+            @empty
+              <tr><td colspan="2" style="color:#6b7280">Belum ada data.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
       </td>
-      <td style="vertical-align: top;">
-        <table class="stats-table-occu">
-    <thead>
-      <tr>
-        <th>Pekerjaan Responden</th>
-        <th style="width:18mm">Jumlah</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($occupationCounts as $id => $count)
-        <tr>
-          <td>{{ $occupationNames[$id] ?? 'Tidak Diketahui' }}</td>
-          <td><strong>{{ $count }} </strong></td>
-        </tr>
-      @empty
-        <tr><td colspan="2" style="color:#6b7280">Belum ada data.</td></tr>
-      @endforelse
-    </tbody>
-  </table>
+      <td style="padding-left: 2mm;">
+        <table class="section-table">
+          <thead>
+            <tr>
+              <th>Pekerjaan Responden</th>
+              <th style="width:20mm">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($occupationCounts as $id => $count)
+              <tr>
+                <td>{{ $occupationNames[$id] ?? 'Tidak Diketahui' }}</td>
+                <td><strong>{{ $count }}</strong></td>
+              </tr>
+            @empty
+              <tr><td colspan="2" style="color:#6b7280">Belum ada data.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
       </td>
     </tr>
   </table>

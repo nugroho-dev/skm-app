@@ -8,7 +8,6 @@ use App\Models\Response as Respondent;
 use App\Models\Education;
 use App\Models\Occupation;
 use App\Models\Institution;
-use App\Models\Service;
 use App\Models\Question;
 use App\Models\Answer;
 use App\Models\Mpp;
@@ -156,6 +155,18 @@ class SurveyController extends Controller
         return view('survey.form', compact('institution', 'questions', 'occupations', 'educations', 'years', 'quarters', 'semesters', 'months', 'institutionsall'));
     }
 
+    public function thankYou(Request $request)
+    {
+        $institution = null;
+        $lastInstitutionSlug = $request->query('inst');
+
+        if ($lastInstitutionSlug) {
+            $institution = Institution::where('slug', $lastInstitutionSlug)->first();
+        }
+
+        return view('survey.thank-you', compact('institution'));
+    }
+
     public function submit(Request $request, $slug)
     {
         
@@ -174,6 +185,36 @@ class SurveyController extends Controller
             //'g-recaptcha-response' => 'required|captcha'
         ];
 
+        $messages = [
+            'required' => ':attribute wajib diisi.',
+            'integer' => ':attribute harus berupa angka.',
+            'string' => ':attribute harus berupa teks.',
+            'array' => ':attribute tidak valid.',
+            'in' => ':attribute tidak valid.',
+            'exists' => ':attribute tidak valid.',
+            'min.numeric' => ':attribute minimal :min.',
+            'max.numeric' => ':attribute maksimal :max.',
+            'min.string' => ':attribute minimal :min karakter.',
+            'max.string' => ':attribute maksimal :max karakter.',
+            'answers.required' => 'Form penilaian wajib diisi.',
+            'answers.array' => 'Format jawaban penilaian tidak valid.',
+            'answers.*.required' => 'Semua pertanyaan penilaian wajib diisi.',
+            'answers.*.integer' => 'Nilai pada pertanyaan penilaian tidak valid.',
+            'answers.*.min' => 'Nilai penilaian minimal 1.',
+            'answers.*.max' => 'Nilai penilaian maksimal 4.',
+        ];
+
+        $attributes = [
+            'gender' => 'Jenis kelamin',
+            'age' => 'Umur',
+            'education_id' => 'Pendidikan terakhir',
+            'occupation_id' => 'Pekerjaan',
+            'service_id' => 'Layanan yang digunakan',
+            'suggestion' => 'Saran/Masukan',
+            'answers' => 'Form penilaian',
+            'answers.*' => 'Nilai penilaian',
+        ];
+
         //$messages = [
             //'g-recaptcha-response.required' => 'Verifikasi captcha diperlukan.',
             //'g-recaptcha-response.captcha'  => 'Captcha tidak valid.',
@@ -181,7 +222,7 @@ class SurveyController extends Controller
 
         
         
-        $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules, $messages, $attributes);
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -212,7 +253,7 @@ class SurveyController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('survey.selectCity')->with('success', 'Terima kasih atas partisipasi Anda!');
+            return redirect()->route('survey.thankyou', ['inst' => $institution->slug]);
         } catch (\Exception $e) {
             dd($e->getMessage());
             DB::rollBack();

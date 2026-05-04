@@ -2,13 +2,16 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use App\Providers\FortifyServiceProvider;
 use App\Http\Responses\CustomLoginResponse;
 use Laravel\Fortify\Contracts\LoginResponse;
 use App\Services\MenuService;
-use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,13 +29,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('public-grafik', function (Request $request) {
+            return [
+                Limit::perMinute(30)->by($request->ip()),
+                Limit::perMinute(45)->by($request->ip().'|'.($request->query('institution_id') ?? 'all')),
+            ];
+        });
+
+        RateLimiter::for('public-publikasi', function (Request $request) {
+            return [
+                Limit::perMinute(8)->by($request->ip()),
+                Limit::perMinute(12)->by($request->ip().'|'.($request->query('institution_id') ?? 'all')),
+            ];
+        });
+
         View::composer('*', function ($view) {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $menus = [];
 
         if ($user) {
-            $role = $user->getRoleNames()->first(); // Spatie method
+            $role = method_exists($user, 'getRoleNames') ? $user->getRoleNames()->first() : null;
             $menus = MenuService::getMenu($role);
         }
 
