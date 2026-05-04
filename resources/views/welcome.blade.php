@@ -131,16 +131,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 2rem;
+        min-height: 540px;
+        padding: 2.25rem 2rem;
     }
     .lp-hero-media.is-emblem > * {
         position: relative;
         z-index: 1;
     }
     .lp-hero-media.is-emblem img {
-        width: min(100%, 320px);
+        width: min(100%, 390px);
         height: auto;
-        max-height: 100%;
+        max-height: 460px;
         object-fit: contain;
         filter: drop-shadow(0 18px 26px rgba(16, 36, 60, 0.18));
     }
@@ -362,8 +363,8 @@
     @media (max-width: 991.98px) {
         .lp-hero { padding: 3rem 1.5rem 4rem; }
         .lp-hero-media img { height: 380px; }
-        .lp-hero-media.is-emblem { padding: 1.5rem; }
-        .lp-hero-media.is-emblem img { width: min(100%, 260px); }
+        .lp-hero-media.is-emblem { min-height: 440px; padding: 1.5rem 1.35rem; }
+        .lp-hero-media.is-emblem img { width: min(100%, 300px); max-height: 360px; }
         .lp-section { padding: 3.5rem 1.5rem; }
         .lp-stat-col + .lp-stat-col { border-left: none; border-top: 1px solid var(--skm-border); }
         .lp-quote { padding: 3.5rem 1.5rem; }
@@ -371,7 +372,8 @@
     }
     @media (max-width: 575.98px) {
         .lp-hero-media img { height: 280px; }
-        .lp-hero-media.is-emblem img { width: min(100%, 210px); }
+        .lp-hero-media.is-emblem { min-height: 360px; }
+        .lp-hero-media.is-emblem img { width: min(100%, 235px); max-height: 280px; }
         .lp-hero { padding: 2.5rem 1rem 3rem; }
         .lp-section { padding: 2.8rem 1rem; }
         .lp-footer { padding: 2.5rem 1rem 1.5rem; }
@@ -435,8 +437,8 @@
             <div style="position:relative;">
                 <div class="d-none d-lg-block" style="position:absolute;top:-1rem;right:-1rem;width:90px;height:90px;border:1px solid rgba(212,167,74,0.45);z-index:0;pointer-events:none;"></div>
                  <div class="lp-hero-media is-emblem" style="position:relative;z-index:1;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Seal_of_the_City_of_Magelang.svg/500px-Seal_of_the_City_of_Magelang.svg.png"
-                        alt="Lambang resmi Kota Magelang" loading="eager">
+                    <img src="{{ asset('img/seal-of-the-city-of-magelang.png') }}"
+                        alt="Lambang Kota Magelang" loading="eager">
                 </div>
             </div>
         </div>
@@ -588,12 +590,12 @@
             <div class="col-lg-4 col-6">
                 <div class="lp-kicker mb-3">Kontak</div>
                 <p style="font-size:0.9rem;color:var(--skm-muted);line-height:1.7;margin-bottom:0.6rem;">
-                    Jl. Jendral Sudirman No. 46<br>
+                    Jl. Veteran No. 7<br>
                     Kota Magelang, Jawa Tengah 56125
                 </p>
                 <p style="font-size:0.9rem;color:var(--skm-muted);line-height:1.7;margin:0;">
-                    (0293) 362 111<br>
-                    sisukma@magelangkota.go.id
+                    <br>
+                    
                 </p>
             </div>
         </div>
