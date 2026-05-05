@@ -222,20 +222,38 @@ class ReportController extends Controller
         // Data detail responden hanya dibawa untuk cetak tabel lengkap.
         $respondents = collect();
         $respondentScores = [];
+        $pdfPage = 1;
+        $pdfPerPage = 2000;
+        $pdfTotalPages = 1;
+        $pdfFrom = 0;
+        $pdfTo = 0;
         if ($includeDetailedRespondents) {
+            $pdfPage = max(1, (int) $request->input('pdf_page', 1));
+            $pdfPerPage = (int) $request->input('pdf_per_page', 2000);
+            $pdfPerPage = max(100, min($pdfPerPage, 5000));
+
+            $totalDetailed = (clone $baseQuery)->count();
+            $pdfTotalPages = max(1, (int) ceil($totalDetailed / $pdfPerPage));
+            $pdfPage = min($pdfPage, $pdfTotalPages);
+
+            $chunkResponseIds = (clone $baseQuery)
+                ->orderBy('created_at')
+                ->forPage($pdfPage, $pdfPerPage)
+                ->pluck('id');
+
             $respondents = DB::table('responses as r')
                 ->leftJoin('educations as e', 'e.id', '=', 'r.education_id')
                 ->leftJoin('occupations as o', 'o.id', '=', 'r.occupation_id')
                 ->leftJoin('institutions as i', 'i.id', '=', 'r.institution_id')
                 ->leftJoin('services as s', 's.id', '=', 'r.service_id')
-                ->whereIn('r.id', (clone $baseQuery)->select('id'))
+                ->whereIn('r.id', $chunkResponseIds)
                 ->orderBy('r.created_at')
                 ->selectRaw('r.id, r.created_at, r.age, e.level as education_level, o.type as occupation_type, i.name as institution_name, s.name as service_name')
                 ->get();
 
             $scoreRows = DB::table('answers as a')
                 ->join('questions as q', 'a.question_id', '=', 'q.id')
-                ->whereIn('a.response_id', (clone $baseQuery)->select('id'))
+                ->whereIn('a.response_id', $chunkResponseIds)
                 ->whereNotNull('q.unsur_id')
                 ->selectRaw('a.response_id, q.unsur_id, ROUND(AVG(a.score)) as score')
                 ->groupBy('a.response_id', 'q.unsur_id')
@@ -243,6 +261,11 @@ class ReportController extends Controller
 
             foreach ($scoreRows as $row) {
                 $respondentScores[$row->response_id][$row->unsur_id] = (int) $row->score;
+            }
+
+            if ($totalDetailed > 0) {
+                $pdfFrom = (($pdfPage - 1) * $pdfPerPage) + 1;
+                $pdfTo = min((($pdfPage - 1) * $pdfPerPage) + $respondents->count(), $totalDetailed);
             }
         }
 
@@ -273,7 +296,8 @@ class ReportController extends Controller
                     'respondentScores', 'totalPerUnsur', 'averagePerUnsur',
                     'weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu',
                     'selectedInstitution', 'totalRespondents', 'genderCounts',
-                    'educationCounts', 'educationNames', 'occupationCounts', 'occupationNames'),
+                    'educationCounts', 'educationNames', 'occupationCounts', 'occupationNames',
+                    'pdfPage', 'pdfPerPage', 'pdfTotalPages', 'pdfFrom', 'pdfTo'),
             $this->dropdownData()
         );
     }

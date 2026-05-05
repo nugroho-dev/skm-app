@@ -33,6 +33,11 @@
             @endif
         </h4>         
     </div>
+    <div style="margin-top: 4px; margin-bottom: 10px; font-size: 11px; text-align: center;">
+        Batch cetak data: halaman {{ $pdfPage ?? 1 }} / {{ $pdfTotalPages ?? 1 }}
+        (baris {{ $pdfFrom ?? 0 }} - {{ $pdfTo ?? 0 }} dari total {{ $totalRespondents ?? 0 }} responden,
+        {{ $pdfPerPage ?? 2000 }} baris per file)
+    </div>
     <br>
     <table>
         <thead>
@@ -53,7 +58,7 @@
         <tbody>
              @forelse($respondents as $i => $res)
              <tr>
-                 <td>{{ $i+1 }}</td>
+                 <td>{{ ($pdfFrom ?? 1) + $i }}</td>
                  <td>{{ \Carbon\Carbon::parse($res->created_at)->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
                  <td>{{ $res->age }}</td>
                  <td>{{ $res->education_level ?? '-' }}</td>

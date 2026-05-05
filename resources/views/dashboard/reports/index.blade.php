@@ -24,7 +24,7 @@
                 
                   <a href="{{ auth()->user()->hasRole('super_admin') ? route('ikm.cetak.publikasi.pdf', request()->all()) : route('instansi.ikm.cetak.publikasi.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak Publikasi PDF</a>
-                  <a href="{{ auth()->user()->hasRole('super_admin') ? route('ikm.cetak.pdf', request()->all()) : route('instansi.ikm.cetak.pdf', request()->all()) }}" target="_blank" class="btn btn-danger">
+                  <a href="{{ auth()->user()->hasRole('super_admin') ? route('ikm.cetak.pdf', array_merge(request()->all(), ['pdf_page' => request('pdf_page', 1), 'pdf_per_page' => request('pdf_per_page', 2000)])) : route('instansi.ikm.cetak.pdf', array_merge(request()->all(), ['pdf_page' => request('pdf_page', 1), 'pdf_per_page' => request('pdf_per_page', 2000)])) }}" target="_blank" class="btn btn-danger">
                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-pdf"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg> Cetak PDF</a>
                    {{-- Form Filter --}}
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal"><svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-filter"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 3h-16a1 1 0 0 0 -1 1v2.227l.008 .223a3 3 0 0 0 .772 1.795l4.22 4.641v8.114a1 1 0 0 0 1.316 .949l6 -2l.108 -.043a1 1 0 0 0 .576 -.906v-6.586l4.121 -4.12a3 3 0 0 0 .879 -2.123v-2.171a1 1 0 0 0 -1 -1z" /></svg> Filter Laporan</button>
@@ -422,6 +422,18 @@ function printTable(tableId) {
                             </select>
                         </div>
                         @endif
+
+                        <div class="col-md-6">
+                            <label class="form-label">Halaman Cetak PDF Detail</label>
+                            <input type="number" min="1" name="pdf_page" value="{{ request('pdf_page', 1) }}" class="form-control" placeholder="1">
+                            <small class="text-muted">Contoh: 1, 2, 3 dst.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Baris per File PDF Detail</label>
+                            <input type="number" min="100" max="5000" name="pdf_per_page" value="{{ request('pdf_per_page', 2000) }}" class="form-control" placeholder="2000">
+                            <small class="text-muted">Rentang 100 - 5000 baris.</small>
+                        </div>
                     </div>
                 </div>
 
