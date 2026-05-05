@@ -54,12 +54,12 @@
              @forelse($respondents as $i => $res)
              <tr>
                  <td>{{ $i+1 }}</td>
-                 <td> {{ $res->created_at->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
+                 <td>{{ \Carbon\Carbon::parse($res->created_at)->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
                  <td>{{ $res->age }}</td>
-                 <td>{{ $res->education->level ?? '-' }}</td>
-                 <td>{{ $res->occupation->type ?? '-' }}</td>
-                 <td>{{ $res->institution->name ?? '-' }}</td>
-                 <td>{{ $res->service->name ?? '-' }}</td>
+                 <td>{{ $res->education_level ?? '-' }}</td>
+                 <td>{{ $res->occupation_type ?? '-' }}</td>
+                 <td>{{ $res->institution_name ?? '-' }}</td>
+                 <td>{{ $res->service_name ?? '-' }}</td>
                  @foreach($unsurs as $unsur)
                      <td style="text-align: center;">
                          {{ $respondentScores[$res->id][$unsur->id] ?? 0 }}

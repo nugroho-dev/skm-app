@@ -190,20 +190,20 @@ class ReportController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     public function cetakPdf(Request $request)
     {
-        $data = $this->getCetakData($request);
+        $data = $this->getCetakData($request, true);
         $pdf  = Pdf::loadView('dashboard.reports.cetak_pdf', $data)->setPaper('a4', 'landscape');
         return $pdf->stream('laporan_ikm.pdf');
     }
 
     public function cetakPublikasiPdf(Request $request)
     {
-        $data = $this->getCetakData($request);
+        $data = $this->getCetakData($request, false);
         $pdf  = Pdf::loadView('dashboard.reports.publikasi_pdf', $data)->setPaper('a4', 'portrait');
         return $pdf->stream('laporan_ikm.pdf');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    private function getCetakData(Request $request): array
+    private function getCetakData(Request $request, bool $includeDetailedRespondents = true): array
     {
         $title    = 'Laporan SKM';
         $subtitle = 'Laporan SKM Berdasarkan Responden dan Nilai SKM';
@@ -212,52 +212,59 @@ class ReportController extends Controller
         $baseQuery           = Respondent::query();
         $selectedInstitution = $this->applyFilters($request, $baseQuery);
 
-        // Load all respondents for PDF (without answers — scores fetched separately)
-        $respondents = (clone $baseQuery)
-            ->with(['service', 'institution.mpp', 'institution.group'])
-            ->orderBy('created_at')
-            ->get();
+        // Unsur stats tetap dihitung dari DB aggregation supaya hemat memori.
+        $stats = $this->computeUnsurStats($baseQuery, $unsurs);
+        $totalPerUnsur    = $stats['totalPerUnsur'];
+        $averagePerUnsur  = $stats['averagePerUnsur'];
+        $weightedPerUnsur = $stats['weightedPerUnsur'];
+        $totalBobot       = $stats['totalBobot'];
 
-        // Scores via subquery — avoids sending 100k IDs in a whereIn clause
-        $inner = DB::table('answers as a')
-            ->join('questions as q', 'a.question_id', '=', 'q.id')
-            ->whereIn('a.response_id', (clone $baseQuery)->select('id'))
-            ->whereNotNull('q.unsur_id')
-            ->selectRaw('a.response_id, q.unsur_id, ROUND(AVG(a.score)) as score')
-            ->groupBy('a.response_id', 'q.unsur_id')
-            ->get();
-
+        // Data detail responden hanya dibawa untuk cetak tabel lengkap.
+        $respondents = collect();
         $respondentScores = [];
-        foreach ($inner as $row) {
-            $respondentScores[$row->response_id][$row->unsur_id] = (int) $row->score;
-        }
+        if ($includeDetailedRespondents) {
+            $respondents = DB::table('responses as r')
+                ->leftJoin('educations as e', 'e.id', '=', 'r.education_id')
+                ->leftJoin('occupations as o', 'o.id', '=', 'r.occupation_id')
+                ->leftJoin('institutions as i', 'i.id', '=', 'r.institution_id')
+                ->leftJoin('services as s', 's.id', '=', 'r.service_id')
+                ->whereIn('r.id', (clone $baseQuery)->select('id'))
+                ->orderBy('r.created_at')
+                ->selectRaw('r.id, r.created_at, r.age, e.level as education_level, o.type as occupation_type, i.name as institution_name, s.name as service_name')
+                ->get();
 
-        // Unsur stats from same aggregated result (no second DB query)
-        $scoresByUnsur    = $inner->groupBy('unsur_id');
-        $totalPerUnsur    = [];
-        $averagePerUnsur  = [];
-        $weightedPerUnsur = [];
-        $totalBobot       = 0;
+            $scoreRows = DB::table('answers as a')
+                ->join('questions as q', 'a.question_id', '=', 'q.id')
+                ->whereIn('a.response_id', (clone $baseQuery)->select('id'))
+                ->whereNotNull('q.unsur_id')
+                ->selectRaw('a.response_id, q.unsur_id, ROUND(AVG(a.score)) as score')
+                ->groupBy('a.response_id', 'q.unsur_id')
+                ->get();
 
-        foreach ($unsurs as $unsur) {
-            $scores  = $scoresByUnsur->get($unsur->id, collect())->pluck('score');
-            $average = $scores->count() > 0 ? $scores->avg() : 0;
-
-            $totalPerUnsur[$unsur->id]    = $scores->sum();
-            $averagePerUnsur[$unsur->id]  = round($average, 2);
-            $weighted                     = $average * 0.11;
-            $weightedPerUnsur[$unsur->id] = round($weighted, 4);
-            $totalBobot                   += $weighted;
+            foreach ($scoreRows as $row) {
+                $respondentScores[$row->response_id][$row->unsur_id] = (int) $row->score;
+            }
         }
 
         $nilaiSKM     = round($totalBobot * 25, 2);
         $kategoriMutu = $this->kategoriMutu($nilaiSKM);
 
-        // Demographics (from already-loaded collection — no extra query)
-        $totalRespondents = $respondents->count();
-        $genderCounts     = $respondents->groupBy('gender')->map->count();
-        $educationCounts  = $respondents->groupBy('education_id')->map->count();
-        $occupationCounts = $respondents->groupBy('occupation_id')->map->count();
+        // Demographics dihitung di SQL supaya publikasi PDF tidak perlu load semua responden.
+        $totalRespondents = (clone $baseQuery)->count();
+        $genderCounts = (clone $baseQuery)
+            ->selectRaw('gender, COUNT(*) as total')
+            ->groupBy('gender')
+            ->pluck('total', 'gender');
+        $educationCounts = (clone $baseQuery)
+            ->whereNotNull('education_id')
+            ->selectRaw('education_id, COUNT(*) as total')
+            ->groupBy('education_id')
+            ->pluck('total', 'education_id');
+        $occupationCounts = (clone $baseQuery)
+            ->whereNotNull('occupation_id')
+            ->selectRaw('occupation_id, COUNT(*) as total')
+            ->groupBy('occupation_id')
+            ->pluck('total', 'occupation_id');
         $educationNames   = Education::whereIn('id', $educationCounts->keys())->pluck('level', 'id');
         $occupationNames  = Occupation::whereIn('id', $occupationCounts->keys())->pluck('type', 'id');
 
