@@ -89,7 +89,7 @@
                         <tbody>
                             @forelse($respondents as $i => $res)
                                 <tr>
-                                    <td>{{ $i+1 }}</td>
+                                    <td>{{ $respondents->firstItem() + $i }}</td>
                                     <td> {{ $res->created_at->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
                                     <td>{{ $res->age }}</td>
                                     <td>{{ $res->education->level ?? '-' }}</td>
@@ -166,6 +166,9 @@
                             </tr>
                         </tfoot>
                     </table>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $respondents->withQueryString()->links('pagination::bootstrap-5') }}
                 </div>
                 <div class="row mt-3">
                     <div class="tabler-responsive col-md-6 col-sm-12">
