@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Institution;
 use App\Models\Education;
 use App\Models\Occupation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -14,422 +15,260 @@ use App\Models\Unsur;
 
 class ReportController extends Controller
 {
-    public function index(Request $request)
+    // ── Apply date & institution filters to any Respondent query ─────────────
+    private function applyFilters(Request $request, $query): ?string
     {
-        $title = 'Laporan SKM';
-        $subtitle = 'Laporan SKM Berdasarkan Responden dan Nilai SKM';
-
-        $unsurs = Unsur::orderBy('label_order')->get();
-
-        $query = Respondent::with([
-            'service',
-            'answers.question.unsur',
-            'institution',
-            'institution.mpp',
-            'institution.group'
-        ]);
-
         $currentMonth = now()->month;
-        $currentYear = now()->year;
+        $currentYear  = now()->year;
 
-        // === LOGIKA PRIORITAS FILTER ===
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $start = Carbon::parse($request->start_date)->startOfDay();
-            $end = Carbon::parse($request->end_date)->endOfDay();
-            $query->whereBetween('created_at', [$start, $end]);
-
+            $query->whereBetween('created_at', [
+                Carbon::parse($request->start_date)->startOfDay(),
+                Carbon::parse($request->end_date)->endOfDay(),
+            ]);
         } elseif ($request->filled('quarter') && $request->filled('year')) {
             $startMonth = ($request->quarter - 1) * 3 + 1;
-            $endMonth = $startMonth + 2;
             $query->whereYear('created_at', $request->year)
-                ->whereMonth('created_at', '>=', $startMonth)
-                ->whereMonth('created_at', '<=', $endMonth);
-
+                  ->whereMonth('created_at', '>=', $startMonth)
+                  ->whereMonth('created_at', '<=', $startMonth + 2);
         } elseif ($request->filled('semester') && $request->filled('year')) {
-            if ($request->semester == 1) {
-                $query->whereYear('created_at', $request->year)
-                    ->whereBetween('created_at', [
-                        Carbon::createFromDate($request->year, 1, 1),
-                        Carbon::createFromDate($request->year, 6, 30)
-                    ]);
-            } elseif ($request->semester == 2) {
-                $query->whereYear('created_at', $request->year)
-                    ->whereBetween('created_at', [
-                        Carbon::createFromDate($request->year, 7, 1),
-                        Carbon::createFromDate($request->year, 12, 31)
-                    ]);
-            }
-
+            [$startM, $endM] = $request->semester == 1 ? [1, 6] : [7, 12];
+            $query->whereYear('created_at', $request->year)
+                  ->whereBetween('created_at', [
+                      Carbon::createFromDate($request->year, $startM, 1)->startOfDay(),
+                      Carbon::createFromDate($request->year, $endM, 1)->endOfMonth()->endOfDay(),
+                  ]);
         } elseif ($request->filled('month') && $request->filled('year')) {
             $query->whereMonth('created_at', $request->month)
-                ->whereYear('created_at', $request->year);
-
+                  ->whereYear('created_at', $request->year);
         } elseif ($request->filled('year')) {
             $query->whereYear('created_at', $request->year);
-
         } else {
             $query->whereMonth('created_at', $currentMonth)
-                ->whereYear('created_at', $currentYear);
-            $request->merge([
-                'month' => $currentMonth,
-                'year' => $currentYear
-            ]);
+                  ->whereYear('created_at', $currentYear);
+            $request->merge(['month' => $currentMonth, 'year' => $currentYear]);
         }
-        // === AKHIR LOGIKA PRIORITAS FILTER ===
 
-        // === FILTER INSTANSI ===
-        if (Auth::user()->hasRole('super_admin')) {
+        $user = Auth::user();
+        $selectedInstitution = null;
+
+        if ($user->hasRole('super_admin')) {
             if ($request->filled('institution_id')) {
                 if ($request->institution_id === 'mpp_ikm') {
-                    $mppIds = Institution::whereHas('mpp', fn($q) =>
-                        $q->where('slug', 'mpp-kota-magelang')
-                    )->pluck('id');
-                    $query->whereIn('institution_id', $mppIds);
+                    $ids = Institution::whereHas('mpp', fn($q) => $q->where('slug', 'mpp-kota-magelang'))->pluck('id');
+                    $query->whereIn('institution_id', $ids);
                     $selectedInstitution = 'MPP Kota Magelang';
-
                 } elseif ($request->institution_id === 'kota_ikm') {
-                    $kotaIds = Institution::whereHas('group', fn($q) =>
-                        $q->where('slug', 'kota-magelang')
-                    )->pluck('id');
-                    $query->whereIn('institution_id', $kotaIds);
+                    $ids = Institution::whereHas('group', fn($q) => $q->where('slug', 'kota-magelang'))->pluck('id');
+                    $query->whereIn('institution_id', $ids);
                     $selectedInstitution = 'Kota Magelang';
-
                 } else {
                     $query->where('institution_id', $request->institution_id);
                     $selectedInstitution = Institution::find($request->institution_id)?->name;
                 }
-            } else {
-                $selectedInstitution = null;
             }
-        } elseif (Auth::user()->hasRole('admin_instansi')) {
-            $user = Auth::user();
-            $institution = $user->institution;
-            $query->where('institution_id', $institution->id);
-            $selectedInstitution = $institution?->name;
+        } else {
+            $query->where('institution_id', $user->institution_id);
+            $selectedInstitution = $user->institution?->name;
         }
 
-        // Ambil responden
-        $respondents = $query->orderBy('created_at')->get();
+        return $selectedInstitution;
+    }
 
-        // === Hitung skor per responden per unsur (pakai rata-rata) ===
-        $respondentScores = [];
-        foreach ($respondents as $respondent) {
-            foreach ($unsurs as $unsur) {
-                $answers = $respondent->answers
-                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
+    // ── Compute per-unsur stats via 2-level SQL aggregation (no PHP memory bloat) ──
+    private function computeUnsurStats($baseQuery, $unsurs): array
+    {
+        // Inner: per-respondent per-unsur rounded avg score
+        // Uses subquery so no massive IN clause is sent to DB
+        $inner = DB::table('answers as a')
+            ->join('questions as q', 'a.question_id', '=', 'q.id')
+            ->whereIn('a.response_id', (clone $baseQuery)->select('id'))
+            ->whereNotNull('q.unsur_id')
+            ->selectRaw('a.response_id, q.unsur_id, ROUND(AVG(a.score)) as resp_score')
+            ->groupBy('a.response_id', 'q.unsur_id');
 
-                $respondentScores[$respondent->id][$unsur->id] = $answers->count() > 0
-                    ? round($answers->avg('score'))
-                    : 0;
-            }
-        }
+        // Outer: per-unsur aggregation (tiny result: 1 row per unsur)
+        $aggregated = DB::table(DB::raw("({$inner->toSql()}) as sub"))
+            ->mergeBindings($inner)
+            ->selectRaw('unsur_id, SUM(resp_score) as total, AVG(resp_score) as average')
+            ->groupBy('unsur_id')
+            ->get()
+            ->keyBy('unsur_id');
 
-        // === Hitung total per unsur, rata-rata, dan bobot ===
-        $totalPerUnsur = [];
-        $averagePerUnsur = [];
+        $totalPerUnsur    = [];
+        $averagePerUnsur  = [];
         $weightedPerUnsur = [];
-        $totalBobot = 0;
-
-        $jumlahUnsur = max(1, $unsurs->count());
-        $bobotPerUnsur = 0.11;//1 / $jumlahUnsur;
+        $totalBobot       = 0;
 
         foreach ($unsurs as $unsur) {
-            // ambil semua nilai responden dari $respondentScores yang sudah dibulatkan
-        $scoresPerRespondent = collect($respondents)->map(fn($r) =>
-            $respondentScores[$r->id][$unsur->id] ?? 0
+            $row     = $aggregated->get($unsur->id);
+            $average = $row ? (float) $row->average : 0.0;
+            $total   = $row ? (float) $row->total   : 0.0;
+
+            $totalPerUnsur[$unsur->id]    = $total;
+            $averagePerUnsur[$unsur->id]  = round($average, 2);
+            $weighted                     = $average * 0.11;
+            $weightedPerUnsur[$unsur->id] = round($weighted, 4);
+            $totalBobot                   += $weighted;
+        }
+
+        return compact('totalPerUnsur', 'averagePerUnsur', 'weightedPerUnsur', 'totalBobot');
+    }
+
+    // ── Shared dropdown data ──────────────────────────────────────────────────
+    private function dropdownData(): array
+    {
+        $months = collect(range(1, 12))->mapWithKeys(
+            fn($m) => [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')]
         );
-
-        $total = $scoresPerRespondent->sum();
-        $average = $scoresPerRespondent->avg();
-
-        $totalPerUnsur[$unsur->id] = $total;
-        $averagePerUnsur[$unsur->id] = round($average, 2);
-
-        $weighted = $average * $bobotPerUnsur;
-        $weightedPerUnsur[$unsur->id] = round($weighted, 4);
-
-        $totalBobot += $weighted;
-        }
-
-        // === Hitung nilai SKM ===
-        $nilaiSKM = round($totalBobot * 25, 2);
-
-        // === Kategori mutu ===
-        if ($nilaiSKM >= 88.31) {
-            $kategoriMutu = ['A', 'Sangat Baik'];
-        } elseif ($nilaiSKM >= 76.61) {
-            $kategoriMutu = ['B', 'Baik'];
-        } elseif ($nilaiSKM >= 65.00) {
-            $kategoriMutu = ['C', 'Kurang Baik'];
-        } else {
-            $kategoriMutu = ['D', 'Tidak Baik'];
-        }
-
-        // === Dropdown filter ===
-        if (Auth::user()->hasRole('super_admin')) {
-            $institutions = Institution::with(['mpp', 'group'])
-                ->orderBy('name')
-                ->get();
-        } else {
-            $institutions = collect();
-        }
-
-        $months = collect(range(1, 12))->mapWithKeys(fn($m) =>
-            [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')]
-        );
-
         $years = Respondent::selectRaw('YEAR(created_at) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year', 'year');
+            ->distinct()->orderBy('year', 'desc')->pluck('year', 'year');
+        $quarters  = [1 => 'Triwulan 1 (Jan-Mar)', 2 => 'Triwulan 2 (Apr-Jun)',
+                      3 => 'Triwulan 3 (Jul-Sep)', 4 => 'Triwulan 4 (Okt-Des)'];
+        $semesters = [1 => 'Semester 1 (Jan-Jun)', 2 => 'Semester 2 (Jul-Des)'];
 
-        $quarters = [
-            1 => 'Triwulan 1 (Jan-Mar)',
-            2 => 'Triwulan 2 (Apr-Jun)',
-            3 => 'Triwulan 3 (Jul-Sep)',
-            4 => 'Triwulan 4 (Okt-Des)'
-        ];
+        $institutions = Auth::user()->hasRole('super_admin')
+            ? Institution::with(['mpp', 'group'])->orderBy('name')->get()
+            : collect();
 
-        $semesters = [
-            1 => 'Semester 1 (Jan-Jun)',
-            2 => 'Semester 2 (Jul-Des)'
-        ];
+        return compact('months', 'years', 'quarters', 'semesters', 'institutions');
+    }
 
-        return view('dashboard.reports.index', compact(
-            'respondents',
-            'unsurs',
-            'institutions',
-            'quarters',
-            'semesters',
-            'months',
-            'years',
-            'title',
-            'subtitle',
-            'totalPerUnsur',
-            'respondentScores',
-            'averagePerUnsur',
-            'weightedPerUnsur',
-            'totalBobot',
-            'nilaiSKM',
-            'kategoriMutu',
-            'selectedInstitution'
+    private function kategoriMutu(float $nilaiSKM): array
+    {
+        if ($nilaiSKM >= 88.31) return ['A', 'Sangat Baik'];
+        if ($nilaiSKM >= 76.61) return ['B', 'Baik'];
+        if ($nilaiSKM >= 65.00) return ['C', 'Kurang Baik'];
+        return ['D', 'Tidak Baik'];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    public function index(Request $request)
+    {
+        $title    = 'Laporan SKM';
+        $subtitle = 'Laporan SKM Berdasarkan Responden dan Nilai SKM';
+        $unsurs   = Unsur::orderBy('label_order')->get();
+
+        $baseQuery           = Respondent::query();
+        $selectedInstitution = $this->applyFilters($request, $baseQuery);
+
+        // Aggregate stats computed entirely in DB (no respondent rows loaded into PHP)
+        $stats      = $this->computeUnsurStats($baseQuery, $unsurs);
+        $nilaiSKM   = round($stats['totalBobot'] * 25, 2);
+        $kategoriMutu = $this->kategoriMutu($nilaiSKM);
+
+        // Paginated respondents (only current page rows loaded)
+        $respondents = (clone $baseQuery)
+            ->with(['service', 'institution.mpp', 'institution.group'])
+            ->orderBy('created_at')
+            ->paginate(25)
+            ->withQueryString();
+
+        // Per-respondent scores only for current page (~25 IDs — fast whereIn)
+        $respondentScores = [];
+        if ($respondents->isNotEmpty()) {
+            $pageScores = DB::table('answers as a')
+                ->join('questions as q', 'a.question_id', '=', 'q.id')
+                ->whereIn('a.response_id', $respondents->pluck('id'))
+                ->whereNotNull('q.unsur_id')
+                ->selectRaw('a.response_id, q.unsur_id, ROUND(AVG(a.score)) as score')
+                ->groupBy('a.response_id', 'q.unsur_id')
+                ->get();
+            foreach ($pageScores as $row) {
+                $respondentScores[$row->response_id][$row->unsur_id] = (int) $row->score;
+            }
+        }
+
+        return view('dashboard.reports.index', array_merge(
+            compact('respondents', 'unsurs', 'title', 'subtitle',
+                    'respondentScores', 'nilaiSKM', 'kategoriMutu', 'selectedInstitution'),
+            $stats,
+            $this->dropdownData()
         ));
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
     public function cetakPdf(Request $request)
     {
-    // ambil data yang sama seperti cetak()
         $data = $this->getCetakData($request);
-
-        $pdf = Pdf::loadView('dashboard.reports.cetak_pdf', $data)
-                ->setPaper('a4', 'landscape');
-
+        $pdf  = Pdf::loadView('dashboard.reports.cetak_pdf', $data)->setPaper('a4', 'landscape');
         return $pdf->stream('laporan_ikm.pdf');
     }
 
-    /**
-     * Supaya tidak duplikasi logika, kita ambil data dari satu fungsi saja
-     */
-    private function getCetakData(Request $request)
-    {
-        $title = 'Laporan SKM';
-        $subtitle = 'Laporan SKM Berdasarkan Responden dan Nilai SKM';
-
-        $unsurs = Unsur::orderBy('label_order')->get();
-
-        $query = Respondent::with([
-            'service',
-            'answers.question.unsur',
-            'institution',
-            'institution.mpp', 'institution.group'
-        ]);
-        $currentMonth = now()->month;
-        $currentYear = now()->year;
-        // === LOGIKA PRIORITAS FILTER ===
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            // 1. Rentang tanggal
-            $start = Carbon::parse($request->start_date)->startOfDay();
-            $end = Carbon::parse($request->end_date)->endOfDay();
-            $query->whereBetween('created_at', [$start, $end]);
-
-        } elseif ($request->filled('quarter') && $request->filled('year')) {
-            // 2. Triwulan
-            $startMonth = ($request->quarter - 1) * 3 + 1;
-            $endMonth = $startMonth + 2;
-            $query->whereYear('created_at', $request->year)
-                ->whereMonth('created_at', '>=', $startMonth)
-                ->whereMonth('created_at', '<=', $endMonth);
-
-        } elseif ($request->filled('semester') && $request->filled('year')) {
-            // 3. Semester
-            if ($request->semester == 1) {
-                $query->whereYear('created_at', $request->year)
-                    ->whereBetween('created_at', [
-                        Carbon::createFromDate($request->year, 1, 1),
-                        Carbon::createFromDate($request->year, 6, 30)
-                    ]);
-            } elseif ($request->semester == 2) {
-                $query->whereYear('created_at', $request->year)
-                    ->whereBetween('created_at', [
-                        Carbon::createFromDate($request->year, 7, 1),
-                        Carbon::createFromDate($request->year, 12, 31)
-                    ]);
-            }
-
-        } elseif ($request->filled('month') && $request->filled('year')) {
-            // 4. Bulan & Tahun
-            $query->whereMonth('created_at', $request->month)
-                ->whereYear('created_at', $request->year);
-
-        } elseif ($request->filled('year')) {
-            // 5. Hanya Tahun
-            $query->whereYear('created_at', $request->year);
-
-        } else {
-            // === DEFAULT (Bulan & Tahun sekarang) ===
-            $query->whereMonth('created_at', $currentMonth)
-                ->whereYear('created_at', $currentYear);
-            $request->merge([
-                'month' => $currentMonth,
-                'year' => $currentYear
-            ]);
-        }
-        // === AKHIR LOGIKA PRIORITAS FILTER ===
-        // Filter instansi
-        if (Auth::user()->hasRole('super_admin')) {
-        if ($request->filled('institution_id')) {
-            if ($request->institution_id === 'mpp_ikm') {
-                // Semua instansi yang tergabung dalam MPP
-                $mppIds = Institution::whereHas('mpp', function ($q) {
-                    $q->where('slug', 'mpp-kota-magelang');
-                })->pluck('id');
-
-                $query->whereIn('institution_id', $mppIds);
-                $selectedInstitution = 'MPP Kota Magelang';
-
-            } elseif ($request->institution_id === 'kota_ikm') {
-                // Semua instansi yang menginduk pada Kota Magelang
-                $kotaIds = Institution::whereHas('group', function ($q) {
-                    $q->where('slug', 'kota-magelang');
-                })->pluck('id');
-
-                $query->whereIn('institution_id', $kotaIds);
-                $selectedInstitution = 'Kota Magelang';
-
-            } else {
-                // Satu instansi spesifik
-                $query->where('institution_id', $request->institution_id);
-                $selectedInstitution = Institution::find($request->institution_id)?->name;
-            }
-        } else {
-            $selectedInstitution = null;
-        }
-        } elseif (Auth::user()->hasRole('admin_instansi')) {
-            $user = Auth::user();
-            $institution = $user->institution;
-            $query->where('institution_id', $institution->id);
-            $selectedInstitution = Institution::find($institution->id)?->name;
-        }
-        $respondents = $query->orderBy('created_at')->get();
-        // === Hitung skor per responden per unsur (pakai rata-rata) ===
-        $respondentScores = [];
-        foreach ($respondents as $respondent) {
-            foreach ($unsurs as $unsur) {
-                $answers = $respondent->answers
-                    ->filter(fn($answer) => $answer->question && $answer->question->unsur_id === $unsur->id);
-
-                $respondentScores[$respondent->id][$unsur->id] = $answers->count() > 0
-                    ? round($answers->avg('score'))
-                    : 0;
-            }
-        }
-         // === Hitung total per unsur, rata-rata, dan bobot ===
-        $totalPerUnsur = [];
-        $averagePerUnsur = [];
-        $weightedPerUnsur = [];
-        $totalBobot = 0;
-
-        $jumlahUnsur = max(1, $unsurs->count());
-        $bobotPerUnsur = 0.11;//1 / $jumlahUnsur;
-
-        foreach ($unsurs as $unsur) {
-            // ambil semua nilai responden dari $respondentScores yang sudah dibulatkan
-        $scoresPerRespondent = collect($respondents)->map(fn($r) =>
-            $respondentScores[$r->id][$unsur->id] ?? 0
-        );
-
-        $total = $scoresPerRespondent->sum();
-        $average = $scoresPerRespondent->avg();
-
-        $totalPerUnsur[$unsur->id] = $total;
-        $averagePerUnsur[$unsur->id] = round($average, 2);
-
-        $weighted = $average * $bobotPerUnsur;
-        $weightedPerUnsur[$unsur->id] = round($weighted, 4);
-
-        $totalBobot += $weighted;
-        }
-
-        // === Hitung nilai SKM ===
-        $nilaiSKM = round($totalBobot * 25, 2);
-        // Tentukan kategori mutu layanan
-        if ($nilaiSKM >= 88.31) {
-            $kategoriMutu = ['A', 'Sangat Baik'];
-        } elseif ($nilaiSKM >= 76.61) {
-            $kategoriMutu = ['B', 'Baik'];
-        } elseif ($nilaiSKM >= 65.00) {
-            $kategoriMutu = ['C', 'Kurang Baik'];
-        } else {
-            $kategoriMutu = ['D', 'Tidak Baik'];
-        }
-        // Data untuk dropdown filter
-        $institutions = Institution::with(['mpp', 'group'])
-            ->orderBy('name')
-            ->get();
-        $months = collect(range(1, 12))->mapWithKeys(function ($m) {
-            return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
-        });
-        $years = Respondent::selectRaw('YEAR(created_at) as year')
-                    ->distinct()
-                    ->orderBy('year', 'desc')
-                    ->pluck('year', 'year');
-        $quarters = [
-            1 => 'Triwulan 1 (Jan-Mar)',
-            2 => 'Triwulan 2 (Apr-Jun)',
-            3 => 'Triwulan 3 (Jul-Sep)',
-            4 => 'Triwulan 4 (Okt-Des)'
-        ];
-        $semesters = [
-            1 => 'Semester 1 (Jan-Jun)',
-            2 => 'Semester 2 (Jul-Des)'
-        ];
-        // Hitung jumlah responden
-        $totalRespondents = $respondents->count();
-        // Hitung jumlah per jenis kelamin
-        $genderCounts = $respondents->groupBy('gender')->map->count();
-
-        // Hitung jumlah per tingkat pendidikan
-        $educationCounts = $respondents->groupBy('education_id')->map->count();
-
-        // Hitung jumlah perkerjaan
-        $occupationCounts = $respondents->groupBy('occupation_id')->map->count();
-
-        // Ambil nama pendidikan (jika relasi ada)
-        $educationNames = Education::whereIn('id', $educationCounts->keys())->pluck('level', 'id');
-        // Ambil nama pekerjaan (jika relasi ada)
-        $occupationNames = Occupation::whereIn('id', $occupationCounts->keys())->pluck('type', 'id');
-
-        return compact('respondents', 'unsurs', 'institutions','quarters','semesters', 'months', 'years', 'title', 'subtitle','totalPerUnsur','respondentScores','averagePerUnsur','weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu','selectedInstitution','totalRespondents', 'genderCounts', 'educationCounts', 'educationNames','occupationCounts', 'occupationNames');
-
-    }
     public function cetakPublikasiPdf(Request $request)
     {
-    // ambil data yang sama seperti cetak()
         $data = $this->getCetakData($request);
-
-        $pdf = Pdf::loadView('dashboard.reports.publikasi_pdf', $data)
-                ->setPaper('a4', 'portrait');
-
+        $pdf  = Pdf::loadView('dashboard.reports.publikasi_pdf', $data)->setPaper('a4', 'portrait');
         return $pdf->stream('laporan_ikm.pdf');
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    private function getCetakData(Request $request): array
+    {
+        $title    = 'Laporan SKM';
+        $subtitle = 'Laporan SKM Berdasarkan Responden dan Nilai SKM';
+        $unsurs   = Unsur::orderBy('label_order')->get();
+
+        $baseQuery           = Respondent::query();
+        $selectedInstitution = $this->applyFilters($request, $baseQuery);
+
+        // Load all respondents for PDF (without answers — scores fetched separately)
+        $respondents = (clone $baseQuery)
+            ->with(['service', 'institution.mpp', 'institution.group'])
+            ->orderBy('created_at')
+            ->get();
+
+        // Scores via subquery — avoids sending 100k IDs in a whereIn clause
+        $inner = DB::table('answers as a')
+            ->join('questions as q', 'a.question_id', '=', 'q.id')
+            ->whereIn('a.response_id', (clone $baseQuery)->select('id'))
+            ->whereNotNull('q.unsur_id')
+            ->selectRaw('a.response_id, q.unsur_id, ROUND(AVG(a.score)) as score')
+            ->groupBy('a.response_id', 'q.unsur_id')
+            ->get();
+
+        $respondentScores = [];
+        foreach ($inner as $row) {
+            $respondentScores[$row->response_id][$row->unsur_id] = (int) $row->score;
+        }
+
+        // Unsur stats from same aggregated result (no second DB query)
+        $scoresByUnsur    = $inner->groupBy('unsur_id');
+        $totalPerUnsur    = [];
+        $averagePerUnsur  = [];
+        $weightedPerUnsur = [];
+        $totalBobot       = 0;
+
+        foreach ($unsurs as $unsur) {
+            $scores  = $scoresByUnsur->get($unsur->id, collect())->pluck('score');
+            $average = $scores->count() > 0 ? $scores->avg() : 0;
+
+            $totalPerUnsur[$unsur->id]    = $scores->sum();
+            $averagePerUnsur[$unsur->id]  = round($average, 2);
+            $weighted                     = $average * 0.11;
+            $weightedPerUnsur[$unsur->id] = round($weighted, 4);
+            $totalBobot                   += $weighted;
+        }
+
+        $nilaiSKM     = round($totalBobot * 25, 2);
+        $kategoriMutu = $this->kategoriMutu($nilaiSKM);
+
+        // Demographics (from already-loaded collection — no extra query)
+        $totalRespondents = $respondents->count();
+        $genderCounts     = $respondents->groupBy('gender')->map->count();
+        $educationCounts  = $respondents->groupBy('education_id')->map->count();
+        $occupationCounts = $respondents->groupBy('occupation_id')->map->count();
+        $educationNames   = Education::whereIn('id', $educationCounts->keys())->pluck('level', 'id');
+        $occupationNames  = Occupation::whereIn('id', $occupationCounts->keys())->pluck('type', 'id');
+
+        return array_merge(
+            compact('respondents', 'unsurs', 'title', 'subtitle',
+                    'respondentScores', 'totalPerUnsur', 'averagePerUnsur',
+                    'weightedPerUnsur', 'totalBobot', 'nilaiSKM', 'kategoriMutu',
+                    'selectedInstitution', 'totalRespondents', 'genderCounts',
+                    'educationCounts', 'educationNames', 'occupationCounts', 'occupationNames'),
+            $this->dropdownData()
+        );
+    }
 }
+
