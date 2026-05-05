@@ -59,7 +59,7 @@
              @forelse($respondents as $i => $res)
              <tr>
                  <td>{{ ($pdfFrom ?? 1) + $i }}</td>
-                 <td>{{ \Carbon\Carbon::parse($res->created_at)->locale('id')->translatedFormat('d F Y H:i:s') }}</td>
+                 <td>{{ substr($res->created_at, 0, 16) }}</td>
                  <td>{{ $res->age }}</td>
                  <td>{{ $res->education_level ?? '-' }}</td>
                  <td>{{ $res->occupation_type ?? '-' }}</td>

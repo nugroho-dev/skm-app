@@ -190,8 +190,24 @@ class ReportController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     public function cetakPdf(Request $request)
     {
+        // Allow large batches: increase memory and execution time for DomPDF
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
+
         $data = $this->getCetakData($request, true);
-        $pdf  = Pdf::loadView('dashboard.reports.cetak_pdf', $data)->setPaper('a4', 'landscape');
+
+        $pdf = Pdf::loadView('dashboard.reports.cetak_pdf', $data)
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'isRemoteEnabled'    => false,
+                'isHtml5ParserEnabled' => true,
+                'defaultFont'        => 'dejavu sans',
+                'dpi'                => 96,
+                'defaultPaperSize'   => 'a4',
+                'isFontSubsettingEnabled' => true,
+                'isPhpEnabled'       => false,
+            ]);
+
         return $pdf->stream('laporan_ikm.pdf');
     }
 
@@ -229,8 +245,8 @@ class ReportController extends Controller
         $pdfTo = 0;
         if ($includeDetailedRespondents) {
             $pdfPage = max(1, (int) $request->input('pdf_page', 1));
-            $pdfPerPage = (int) $request->input('pdf_per_page', 2000);
-            $pdfPerPage = max(100, min($pdfPerPage, 5000));
+            $pdfPerPage = (int) $request->input('pdf_per_page', 1000);
+            $pdfPerPage = max(100, min($pdfPerPage, 2000));
 
             $totalDetailed = (clone $baseQuery)->count();
             $pdfTotalPages = max(1, (int) ceil($totalDetailed / $pdfPerPage));
