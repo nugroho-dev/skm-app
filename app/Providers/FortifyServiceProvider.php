@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 use App\Models\Institution;
@@ -31,6 +32,16 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        ResetPasswordNotification::createUrlUsing(function (object $notifiable, string $token): string {
+            $baseUrl = rtrim((string) config('app.url'), '/');
+            $path = route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false);
+
+            return $baseUrl.$path;
+        });
+
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
