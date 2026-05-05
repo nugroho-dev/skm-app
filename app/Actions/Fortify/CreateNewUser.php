@@ -38,6 +38,15 @@ class CreateNewUser implements CreatesNewUsers
             'email.unique' => 'Data pendaftaran tidak valid.',
             'institution_slug.required' => 'Instansi wajib dipilih.',
             'institution_slug.exists' => 'Instansi tidak valid.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.string' => 'Kata sandi tidak valid.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak sesuai.',
+            'password.min' => 'Kata sandi tidak memenuhi kebijakan keamanan.',
+            'password.letters' => 'Kata sandi tidak memenuhi kebijakan keamanan.',
+            'password.mixed' => 'Kata sandi tidak memenuhi kebijakan keamanan.',
+            'password.numbers' => 'Kata sandi tidak memenuhi kebijakan keamanan.',
+            'password.symbols' => 'Kata sandi tidak memenuhi kebijakan keamanan.',
+            'password.uncompromised' => 'Kata sandi tidak memenuhi kebijakan keamanan.',
         ])->validate();
 
         $institution = Institution::where('slug',  $input['institution_slug'])->firstOrFail();
