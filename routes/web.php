@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::put('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
         Route::put('/users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::get('/instansi', [InstitutionController::class, 'index'])->name('institutions.index');
         Route::get('/instansi/create', [InstitutionController::class, 'create'])->name('institutions.create');
         Route::post('/instansi', [InstitutionController::class, 'store'])->name('institutions.store');

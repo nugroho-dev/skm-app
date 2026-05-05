@@ -114,13 +114,12 @@ class ServiceController extends Controller
     // Contoh: Route::get('services/{service}/edit', [ServiceController::class, 'edit']);
     $user = Auth::user();
     $title = 'Edit Layanan Instansi';
-    // Ganti pengecekan role sesuai implementasi Anda, misal menggunakan atribut 'role'
-    if ($user->role === 'admin_instansi' &&
+    if ($user->hasRole('admin_instansi') &&
         $service->institution_id != $user->institution_id) {
         abort(403, 'Tidak diizinkan mengedit layanan instansi lain.');
     }
 
-    $institutions = $user->role === 'super_admin' ? Institution::all() : Institution::where('id', $user->institution_id)->get();
+    $institutions = $user->hasRole('super_admin') ? Institution::all() : Institution::where('id', $user->institution_id)->get();
     $institution_id = $service->institution_id;
         return view('dashboard.services.edit', compact('service', 'institutions', 'title','institution_id'));
     }

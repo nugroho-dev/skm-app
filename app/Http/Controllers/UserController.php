@@ -48,4 +48,14 @@ class UserController extends Controller
     User::where('id', $user->id)->update(['is_approved' => false]);
     return back()->with('success', 'User telah ditolak.');
     }
+
+    public function destroy(User $user)
+    {
+        if (!auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $user->delete();
+        return back()->with('success', 'User telah dihapus.');
+    }
 }
