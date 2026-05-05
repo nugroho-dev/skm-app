@@ -10,6 +10,11 @@
           @csrf
           <div class="card-body">
             <h2 class="card-title text-center mb-4">Buat Akun</h2>
+            @if (session('status'))
+              <div class="alert alert-success" role="alert">
+                {{ session('status') }}
+              </div>
+            @endif
             <div class="mb-3">
               <label class="form-label">Nama</label>
               <input type="text" class="form-control @error('name') is-invalid @enderror" placeholder="Enter name" name="name" value="{{ old('name') }}" required autofocus>

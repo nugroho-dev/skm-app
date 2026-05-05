@@ -49,7 +49,8 @@ class SurveyController extends Controller
         ->pluck('y');
     // Data untuk dropdown filter
     
-    $institutionsall = Institution::with(['mpp', 'group'])
+    $institutionsall = Institution::query()
+        ->select(['name', 'slug'])
         ->orderBy('name')
         ->get();
 
@@ -107,7 +108,8 @@ class SurveyController extends Controller
         ->pluck('y');
     // Data untuk dropdown filter
     
-    $institutionsall = Institution::with(['mpp', 'group'])
+    $institutionsall = Institution::query()
+        ->select(['name', 'slug'])
         ->orderBy('name')
         ->get();
 
@@ -149,7 +151,8 @@ class SurveyController extends Controller
         ->pluck('y');
     // Data untuk dropdown filter
     
-    $institutionsall = Institution::with(['mpp', 'group'])
+    $institutionsall = Institution::query()
+        ->select(['name', 'slug'])
         ->orderBy('name')
         ->get();
         return view('survey.form', compact('institution', 'questions', 'occupations', 'educations', 'years', 'quarters', 'semesters', 'months', 'institutionsall'));

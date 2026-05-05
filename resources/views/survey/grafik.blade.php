@@ -821,17 +821,18 @@
                         <h6 class="grafik-filter-panel-title">Cakupan Instansi</h6>
                         <p class="grafik-filter-panel-note">Pilih agregat kota, agregat MPP, atau satu instansi tertentu untuk melihat pola grafik pada cakupan yang diinginkan.</p>
                         <div class="row g-3 mt-1">
+                        @php $selectedInstitutionFilter = request('institution', request('institution_id')); @endphp
                         @if($institutionsall->isNotEmpty())
                             <div class="col-md-12">
                                 <label class="form-label">Instansi</label>
-                                <select name="institution_id" class="form-select">
+                                <select name="institution" class="form-select">
                                     <option value="">-- Semua --</option>
-                                    <option value="kota_ikm" {{ request('institution_id') === 'kota_ikm' ? 'selected' : '' }}>Nilai IKM Kota Magelang</option>
-                                    <option value="mpp_ikm" {{ request('institution_id') === 'mpp_ikm' ? 'selected' : '' }}>Nilai IKM MPP</option>
+                                    <option value="kota_ikm" {{ $selectedInstitutionFilter === 'kota_ikm' ? 'selected' : '' }}>Nilai IKM Kota Magelang</option>
+                                    <option value="mpp_ikm" {{ $selectedInstitutionFilter === 'mpp_ikm' ? 'selected' : '' }}>Nilai IKM MPP</option>
                                     @foreach($institutionsall as $inst)
                                         @if(!empty($inst->slug))
                                             @php $instFilterValue = 'inst:' . $inst->slug; @endphp
-                                            <option value="{{ $instFilterValue }}" {{ request('institution_id') === $instFilterValue ? 'selected' : '' }}>
+                                            <option value="{{ $instFilterValue }}" {{ $selectedInstitutionFilter === $instFilterValue ? 'selected' : '' }}>
                                                 {{ $inst->name }}
                                             </option>
                                         @endif

@@ -17,9 +17,9 @@ use App\Http\Controllers\ReportServiceController;
 use App\Http\Controllers\ReportGrafikController;
 use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\SurveyPublicController;
+use App\Http\Controllers\Auth\SafeRegisteredUserController;
 use App\Http\Middleware\VerifyRecaptcha;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
-use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use Laravel\Fortify\Fortify;
 
 ;
@@ -40,7 +40,7 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware(['guest', 'throttle:login', VerifyRecaptcha::class])
     ->name('login');
 
-Route::post('/register', [RegisteredUserController::class, 'store'])->middleware(['guest', 'throttle:register', VerifyRecaptcha::class])->name('register');
+Route::post('/register', [SafeRegisteredUserController::class, 'store'])->middleware(['guest', 'throttle:register', VerifyRecaptcha::class])->name('register');
 
 Route::middleware(['auth', 'verified', 'approved'])->group(function () {
   

@@ -20,9 +20,20 @@ class SurveyPublicController extends Controller
     private const PUBLIC_INSTITUTION_FILTER_PREFIX = 'inst:';
     private const IKM_WEIGHT_PER_UNSUR = 0.11;
 
+    private function publicInstitutionFilterInput(Request $request): ?string
+    {
+        $value = $request->query('institution', $request->query('institution_id'));
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
     private function resolvePublicInstitutionFilter(Request $request): ?array
     {
-        $institutionFilter = $request->query('institution_id');
+        $institutionFilter = $this->publicInstitutionFilterInput($request);
 
         if ($institutionFilter === null || $institutionFilter === '') {
             return null;
@@ -283,7 +294,7 @@ class SurveyPublicController extends Controller
         $selectedInstitution = $this->applyPublicInstitutionFilterToQuery($yearsQuery, $institutionFilter, 'responses.institution_id');
 
         $cacheKey = $this->buildCacheKey('grafik', [
-            'institution_id' => $request->query('institution_id'),
+            'institution' => $this->publicInstitutionFilterInput($request),
             'selected_year' => $selectedYear,
         ]);
 
@@ -319,7 +330,8 @@ class SurveyPublicController extends Controller
             return [$m => Carbon::createFromDate(null, $m, 1)->locale('id')->translatedFormat('F')];
         });
 
-        $institutionsall = Institution::with(['mpp', 'group'])
+        $institutionsall = Institution::query()
+            ->select(['name', 'slug'])
             ->orderBy('name')
             ->get();
 
@@ -362,7 +374,8 @@ class SurveyPublicController extends Controller
             ->orderBy('y')
             ->pluck('y');
 
-        $institutions = Institution::with(['mpp', 'group'])
+        $institutions = Institution::query()
+            ->select(['name', 'slug'])
             ->orderBy('name')
             ->get();
 
@@ -392,7 +405,7 @@ class SurveyPublicController extends Controller
             'semester' => $request->query('semester'),
             'month' => $request->query('month'),
             'year' => $request->query('year'),
-            'institution_id' => $request->query('institution_id'),
+            'institution' => $this->publicInstitutionFilterInput($request),
         ]);
 
         $metrics = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($request, $institutionFilter, $unsurs) {
@@ -471,7 +484,8 @@ class SurveyPublicController extends Controller
             $kategoriMutu = ['D', 'Tidak Baik'];
         }
 
-        $institutions = Institution::with(['mpp', 'group'])
+        $institutions = Institution::query()
+            ->select(['name', 'slug'])
             ->orderBy('name')
             ->get();
 

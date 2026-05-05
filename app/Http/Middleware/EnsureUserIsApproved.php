@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsApproved
@@ -15,13 +16,13 @@ class EnsureUserIsApproved
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        if ($user && $user->hasRole('admin_instansi') && !$user->is_approved) {
-            auth()->logout();
+        if ($user && method_exists($user, 'hasRole') && $user->hasRole('admin_instansi') && ! $user->is_approved) {
+            Auth::logout();
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Akun Anda belum disetujui oleh admin.',
+                'email' => __('auth.failed'),
             ]);
         }
         

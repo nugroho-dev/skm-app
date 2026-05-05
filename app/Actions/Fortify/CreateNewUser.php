@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Spatie\Permission\Models\Role;
 use App\Models\Institution;
 
 class CreateNewUser implements CreatesNewUsers
@@ -32,7 +31,15 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'institution_slug' => ['required', 'exists:institutions,slug'],
             'password' => $this->passwordRules(),
+        ], [
+            'name.required' => 'Nama wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Data pendaftaran tidak valid.',
+            'institution_slug.required' => 'Instansi wajib dipilih.',
+            'institution_slug.exists' => 'Instansi tidak valid.',
         ])->validate();
+
         $institution = Institution::where('slug',  $input['institution_slug'])->firstOrFail();
         $user = User::create([
             'name' => $input['name'],

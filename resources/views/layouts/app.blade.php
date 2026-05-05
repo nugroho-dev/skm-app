@@ -419,6 +419,7 @@
         $filterMonths = $months ?? [];
         $filterYears = $years ?? [];
         $filterInstitutions = $institutionsall ?? ($institutions ?? collect());
+        $selectedInstitutionFilter = request('institution', request('institution_id'));
     @endphp
     <div class="modal fade skm-filter-modal" id="filterModal2" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true" data-bs-backdrop="false">
     <div class="modal-dialog modal-lg">
@@ -503,14 +504,14 @@
                         <div class="row g-3 mt-1">
                             <div class="col-md-12">
                             <label class="form-label">Instansi</label>
-                            <select name="institution_id" class="form-select">
+                            <select name="institution" class="form-select">
                                 <option value="">-- Semua --</option>
-                                <option value="kota_ikm" {{ request('institution_id') === 'kota_ikm' ? 'selected' : '' }}>Nilai IKM Kota Magelang</option>
-                                <option value="mpp_ikm" {{ request('institution_id') === 'mpp_ikm' ? 'selected' : '' }}>Nilai IKM MPP</option>
+                                <option value="kota_ikm" {{ $selectedInstitutionFilter === 'kota_ikm' ? 'selected' : '' }}>Nilai IKM Kota Magelang</option>
+                                <option value="mpp_ikm" {{ $selectedInstitutionFilter === 'mpp_ikm' ? 'selected' : '' }}>Nilai IKM MPP</option>
                                 @foreach($filterInstitutions as $inst)
                                     @if(!empty($inst->slug))
                                         @php $instFilterValue = 'inst:' . $inst->slug; @endphp
-                                        <option value="{{ $instFilterValue }}" {{ request('institution_id') === $instFilterValue ? 'selected' : '' }}>
+                                        <option value="{{ $instFilterValue }}" {{ $selectedInstitutionFilter === $instFilterValue ? 'selected' : '' }}>
                                             {{ $inst->name }}
                                         </option>
                                     @endif

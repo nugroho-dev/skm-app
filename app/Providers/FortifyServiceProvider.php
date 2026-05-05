@@ -6,8 +6,10 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -42,6 +44,23 @@ class FortifyServiceProvider extends ServiceProvider
             return $baseUrl.$path;
         });
 
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $email = (string) $request->input(Fortify::username());
+            $password = (string) $request->input('password');
+
+            $user = User::query()->where('email', $email)->first();
+
+            if (! $user || ! Hash::check($password, $user->password)) {
+                return null;
+            }
+
+            if ($user->hasRole('admin_instansi') && ! $user->is_approved) {
+                return null;
+            }
+
+            return $user;
+        });
+
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
@@ -53,7 +72,12 @@ class FortifyServiceProvider extends ServiceProvider
         //Fortify::loginView(function () {
             //return view('auth.logn'); // Adjust 'auth.login' to your actual view path
         //});
-        Fortify::registerView(fn () => view('auth.register', ['institutions' => Institution::all()]));
+        Fortify::registerView(fn () => view('auth.register', [
+            'institutions' => Institution::query()
+                ->select(['name', 'slug'])
+                ->orderBy('name')
+                ->get(),
+        ]));
         Fortify::requestPasswordResetLinkView(fn () => view('auth.forgot-password'));
         Fortify::resetPasswordView(fn ($request) => view('auth.reset-password', ['request' => $request]));
         Fortify::verifyEmailView(fn () => view('auth.verify-email', ['title' => 'Verifikasi Email']));

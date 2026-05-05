@@ -14,17 +14,17 @@
         @csrf
 
         <div class="mb-4">
-            <label for="institution_id" class="block text-sm font-medium text-gray-700">Instansi</label>
-            <select name="institution_id" id="institution_id" required
+            <label for="institution_slug" class="block text-sm font-medium text-gray-700">Instansi</label>
+            <select name="institution_slug" id="institution_slug" required
                     class="mt-1 block w-full rounded border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 <option value="">-- Pilih Instansi --</option>
                 @foreach($institutions as $institution)
-                    <option value="{{ $institution->id }}" {{ old('institution_id') == $institution->id ? 'selected' : '' }}>
+                    <option value="{{ $institution->slug }}" {{ old('institution_slug') == $institution->slug ? 'selected' : '' }}>
                         {{ $institution->name }}
                     </option>
                 @endforeach
             </select>
-            @error('institution_id')
+            @error('institution_slug')
                 <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
             @enderror
         </div>
